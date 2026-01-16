@@ -6,5 +6,5 @@ x = np.arange(0, 11)
 y = np.arange(0, 11) ** 3                                                                                                                                    
 
 plt.figure(figsize=(10, 6))                                                                                                                                                   
-plt.plot(x, y) 
+plt.plot(x, y, color='red') 
 plt.show() 
