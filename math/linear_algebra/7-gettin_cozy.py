@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-Defines a function cat_matrices2D that concatenates two 2D matrices along a specific axis.
+Defines a function cat_matrices2D that
+ concatenates two 2D matrices along a specific axis.
 """
 
 

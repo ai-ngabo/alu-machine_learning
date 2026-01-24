@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
-Defines a function np_shape that 
-calculates the shape of a numpy.ndarray.
+function np_shape that calculates the shape .
 """
 
 
