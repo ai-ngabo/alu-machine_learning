@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
-import numpy as np
-"""np_cat that concatenates two along a specific axis."""
+"""
+Defines a function np_cat that concatenates two numpy.ndarrays along a specific axis.
+"""
 
+
+import numpy as np
 
 def np_cat(mat1, mat2, axis=0):
     """Concatenate two numpy.ndarrays along the given axis."""
