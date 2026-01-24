@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-Defines a function matrix_transpose that returns the transpose of a 2D matrix.
+Defines a function matrix_transpose that 
+returns the transpose of a 2D matrix.
 """
 
 
