@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import numpy as np
 """np_cat that concatenates two along a specific axis."""
 
 
