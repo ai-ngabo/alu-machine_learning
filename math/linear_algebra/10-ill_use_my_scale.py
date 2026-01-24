@@ -5,8 +5,6 @@ calculates the shape of a numpy.ndarray.
 """
 
 
-import numpy as np
-
 def np_shape(matrix):
     """Return the shape of a numpy.ndarray 
     as a tuple of integers."""
