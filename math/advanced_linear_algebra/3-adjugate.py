@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
 """
-Module for calculating the minor matrix of a square matrix.
+Module for calculating the adjugate matrix of a square matrix.
 
-This module provides a single function `minor(matrix)` that
-validates input and computes the minor matrix.
+This module provides a single function `adjugate(matrix)` that
+validates input and computes the adjugate matrix.
 """
 
 
@@ -23,46 +23,53 @@ def determinant(matrix):
         submatrix = [row[:j] + row[j+1:] for row in matrix[1:]]
         det += ((-1) ** j) * matrix[0][j] * determinant(submatrix)
     return det
-def minor(matrix):
 
+
+def adjugate(matrix):
     """
-    Calculate the minor matrix of a square matrix.
+    Calculate the adjugate matrix of a square matrix.
 
     Args:
         matrix (list of lists): input matrix
 
     Returns:
-        list of lists: minor matrix
+        list of lists: adjugate matrix
 
     Raises:
         TypeError: if matrix is not a list of lists
         ValueError: if matrix is not square or is empty
     """
-
+    
     # --- Input validation ---
     if (not isinstance(matrix, list) or
             any(not isinstance(row, list) for row in matrix)):
         raise TypeError("matrix must be a list of lists")
 
+    if matrix == []:
+        raise TypeError("matrix must be a list of lists")
+
     n = len(matrix)
-    if n == 0 or any(len(row) != n for row in matrix):
+    if any(len(row) != n for row in matrix):
         raise ValueError("matrix must be a non-empty square matrix")
 
     # Special case: 1x1 matrix
     if n == 1:
         return [[1]]
 
-    # --- Compute minor matrix ---
-    minors = []
+    # --- Compute cofactor matrix ---
+    cofactors = []
     for i in range(n):
-        row_minors = []
+        row_cofactors = []
         for j in range(n):
             submatrix = [
                 r[:j] + r[j+1:]
                 for k, r in enumerate(matrix)
                 if k != i
             ]
-            row_minors.append(determinant(submatrix))
-        minors.append(row_minors)
+            cofactor_val = ((-1) ** (i + j)) * determinant(submatrix)
+            row_cofactors.append(cofactor_val)
+        cofactors.append(row_cofactors)
 
-    return minors
+    # --- Transpose cofactor matrix to get adjugate ---
+    adj = [[cofactors[j][i] for j in range(n)] for i in range(n)]
+    return adj
