@@ -23,9 +23,6 @@ def determinant(matrix):
         minor = [row[:j] + row[j+1:] for row in matrix[1:]]
         det += ((-1) ** j) * matrix[0][j] * determinant(minor)
     return det
-
-
-
 def minor(matrix):
     """
     Calculate the minor matrix of a square matrix.
@@ -58,7 +55,11 @@ def minor(matrix):
     for i in range(n):
         row_minors = []
         for j in range(n):
-            submatrix = [r[:j] + r[j+1:] for k, r in enumerate(matrix) if k != i]
+            submatrix = [
+                r[:j] + r[j+1:]
+                for k, r in enumerate(matrix)
+                if k != i
+            ]
             row_minors.append(determinant(submatrix))
         minors.append(row_minors)
 
