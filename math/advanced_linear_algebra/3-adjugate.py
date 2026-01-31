@@ -39,7 +39,6 @@ def adjugate(matrix):
         TypeError: if matrix is not a list of lists
         ValueError: if matrix is not square or is empty
     """
-    
     # --- Input validation ---
     if (not isinstance(matrix, list) or
             any(not isinstance(row, list) for row in matrix)):
