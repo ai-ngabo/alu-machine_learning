@@ -8,8 +8,6 @@ positive semi-definite, negative semi-definite, negative definite,
 or indefinite.
 """
 
-import numpy as np
-
 
 def definiteness(matrix):
     """
@@ -36,20 +34,24 @@ def definiteness(matrix):
     if len(matrix.shape) != 2 or matrix.shape[0] != matrix.shape[1]:
         return None
 
+    # --- Symmetry check ---
+    if not np.allclose(matrix, matrix.T):
+        return None
+
     # --- Compute eigenvalues ---
     try:
         eigvals = np.linalg.eigvals(matrix)
     except Exception:
         return None
 
-    # Numerical tolerance for floating point comparisons
+    
     tol = 1e-10
     pos = np.all(eigvals > tol)
     neg = np.all(eigvals < -tol)
     semi_pos = np.all(eigvals >= -tol) and np.any(np.abs(eigvals) <= tol)
     semi_neg = np.all(eigvals <= tol) and np.any(np.abs(eigvals) <= tol)
 
-    # --- Classification ---
+    
     if pos:
         return "Positive definite"
     if semi_pos:
