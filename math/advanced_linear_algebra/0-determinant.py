@@ -7,6 +7,7 @@ This module provides a single function `determinant(matrix)` that
 validates input and computes the determinant recursively.
 """
 
+
 def determinant(matrix):
     """
     Calculate the determinant of a matrix.
