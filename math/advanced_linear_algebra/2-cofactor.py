@@ -23,6 +23,8 @@ def determinant(matrix):
         submatrix = [row[:j] + row[j+1:] for row in matrix[1:]]
         det += ((-1) ** j) * matrix[0][j] * determinant(submatrix)
     return det
+
+
 def cofactor(matrix):
 
     """
