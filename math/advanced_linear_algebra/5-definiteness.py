@@ -46,14 +46,12 @@ def definiteness(matrix):
     except Exception:
         return None
 
-    
     tol = 1e-10
     pos = np.all(eigvals > tol)
     neg = np.all(eigvals < -tol)
     semi_pos = np.all(eigvals >= -tol) and np.any(np.abs(eigvals) <= tol)
     semi_neg = np.all(eigvals <= tol) and np.any(np.abs(eigvals) <= tol)
 
-    
     if pos:
         return "Positive definite"
     if semi_pos:
