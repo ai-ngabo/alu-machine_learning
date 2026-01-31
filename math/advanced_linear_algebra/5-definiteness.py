@@ -8,6 +8,8 @@ positive semi-definite, negative semi-definite, negative definite,
 or indefinite.
 """
 
+import numpy as np
+
 
 def definiteness(matrix):
     """
