@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 """
 This module provides a function to compute the derivative of a polynomial.
 
@@ -14,7 +13,12 @@ power of x.
 
 
 def poly_derivative(poly):
-    """Return the derivative of a polynomial given as a list of coefficients."""
+    """
+    Return the derivative of a polynomial.
+
+    The polynomial is given as a list of coefficients, where the index
+    represents the power of x. Returns None if input is invalid.
+    """
     if not isinstance(poly, list) or len(poly) == 0:
         return None
     if not all(isinstance(c, (int, float)) for c in poly):
