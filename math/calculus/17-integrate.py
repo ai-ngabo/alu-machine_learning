@@ -24,9 +24,9 @@ def poly_integral(poly, C=0):
     the first element of the result.
     """
     # Validate inputs
-    if not isinstance(poly, list) or not all(
-        isinstance(c, (int, float)) for c in poly
-    ):
+    if not isinstance(poly, list) or len(poly) == 0:
+        return None
+    if not all(isinstance(c, (int, float)) for c in poly):
         return None
     if not isinstance(C, (int, float)):
         return None
@@ -35,7 +35,6 @@ def poly_integral(poly, C=0):
     integral = [C]
     for idx, coef in enumerate(poly):
         new_coef = coef / (idx + 1)
-        # Represent whole numbers as int
         if float(new_coef).is_integer():
             new_coef = int(new_coef)
         integral.append(new_coef)
