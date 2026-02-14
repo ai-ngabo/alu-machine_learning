@@ -12,8 +12,8 @@ The function summation_i_squared(n) calculates:
 - No loops are used; the closed-form formula is applied
 """
 
-def summation_i_squared(n):
 
+def summation_i_squared(n):
     """Return the sum of squares from 1 to n, or None if invalid."""
     if not isinstance(n, int) or n < 1:
         return None
