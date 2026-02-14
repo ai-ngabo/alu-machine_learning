@@ -13,6 +13,7 @@ The function summation_i_squared(n) calculates:
 """
 
 def summation_i_squared(n):
+
     """Return the sum of squares from 1 to n, or None if invalid."""
     if not isinstance(n, int) or n < 1:
         return None
