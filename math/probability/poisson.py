@@ -3,25 +3,34 @@
 Poisson distribution class
 """
 
+
 class Poisson:
+    """
+    Represents a Poisson distribution.
+
+    Attributes:
+        lambtha (float): Expected number of occurrences in a given time frame.
+    """
+
     def __init__(self, data=None, lambtha=1.):
         """
         Initialize a Poisson distribution.
 
-        Parameters:
-        - data: list of values to estimate lambtha (optional)
-        - lambtha: expected number of occurrences (float, default=1.0)
+        Args:
+            data (list, optional): List of observed data points.
+            lambtha (float, optional): Expected number of occurrences.
+
+        Raises:
+            ValueError: If lambtha <= 0 or data has fewer than 2 points.
+            TypeError: If data is not a list.
         """
         if data is None:
-            # Use provided lambtha
             if lambtha <= 0:
                 raise ValueError("lambtha must be a positive value")
             self.lambtha = float(lambtha)
         else:
-            # Validate data
             if not isinstance(data, list):
                 raise TypeError("data must be a list")
             if len(data) < 2:
                 raise ValueError("data must contain multiple values")
-            # Estimate lambtha as the mean of data
             self.lambtha = float(sum(data) / len(data))
