@@ -72,5 +72,5 @@ class Poisson:
             return result
 
         value = (exp(-self.lambtha) * (self.lambtha ** k)) / factorial(k)
-        # Force output to exactly 10 decimal places
-        return float(f"{value:.10f}")
+        # Force output to exactly 10 decimal places (Python 3.5+ safe)
+        return float("{:.10f}".format(value))
