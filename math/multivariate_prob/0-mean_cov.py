@@ -9,11 +9,11 @@ def mean_cov(X):
     Calculates the mean and covariance matrix of a dataset X.
 
     Args:
-        X (numpy.ndarray): shape (n, d) containing n data points of d dimensions
+        X (numpy.ndarray): shape (n, d) 
 
     Returns:
-        mean (numpy.ndarray): shape (1, d) containing the mean
-        cov (numpy.ndarray): shape (d, d) containing the covariance matrix
+        mean (numpy.ndarray): shape (1, d) 
+        cov (numpy.ndarray): shape (d, d) 
 
     Raises:
         TypeError: if X is not a 2D numpy.ndarray
