@@ -26,8 +26,13 @@ class MultiNormal:
             raise ValueError("data must contain multiple data points")
 
         self.d = d  # number of dimensions
+        # Compute mean (d,1)
         self.mean = np.mean(data, axis=1).reshape(d, 1)
+
+        # Center the data
         data_centered = data - self.mean
+
+        # Compute covariance manually: (X_centered @ X_centered.T) / (n - 1)
         self.cov = (data_centered @ data_centered.T) / (n - 1)
 
         # Precompute constants for PDF
@@ -52,7 +57,7 @@ class MultiNormal:
         if not isinstance(x, np.ndarray):
             raise TypeError("x must be a numpy.ndarray")
         if x.shape != (self.d, 1):
-            raise ValueError(f"x must have the shape ({self.d}, 1)")
+            raise ValueError("x must have the shape (" + str(self.d) + ", 1)")
 
         diff = x - self.mean
         exponent = -0.5 * (diff.T @ self._cov_inv @ diff)
