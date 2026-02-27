@@ -6,10 +6,6 @@ class Normal:
     """Represents a normal distribution"""
 
     def __init__(self, data=None, mean=0., stddev=1.):
-        """
-        Class constructor
-        """
-
         if data is None:
             if stddev <= 0:
                 raise ValueError("stddev must be a positive value")
@@ -24,28 +20,24 @@ class Normal:
             if len(data) < 2:
                 raise ValueError("data must contain multiple values")
 
-            # Calculate mean
             self.mean = float(sum(data) / len(data))
 
-            # Calculate population standard deviation
             variance = 0
             for x in data:
                 variance += (x - self.mean) ** 2
 
-            variance /= len(data)
+            # ✅ SAMPLE variance (important!)
+            variance /= (len(data) - 1)
+
             self.stddev = float(variance ** 0.5)
 
     def z_score(self, x):
-        """Calculates the z-score of x"""
         return (x - self.mean) / self.stddev
 
     def x_value(self, z):
-        """Calculates the x-value of a given z-score"""
         return z * self.stddev + self.mean
 
     def pdf(self, x):
-        """Calculates the PDF for x"""
-
         pi = 3.1415926536
         e = 2.7182818285
 
@@ -55,9 +47,6 @@ class Normal:
         return coeff * (e ** exponent)
 
     def cdf(self, x):
-        """Calculates the CDF for x"""
-
-        # Abramowitz & Stegun approximation for erf
         z = (x - self.mean) / (self.stddev * (2 ** 0.5))
 
         t = 1 / (1 + 0.3275911 * abs(z))
