@@ -12,7 +12,7 @@ class MultiNormal:
         Initialize a Multivariate Normal distribution.
 
         Args:
-            data (numpy.ndarray): shape (d, n) 
+            data (numpy.ndarray): shape (d, n)
 
         Raises:
             TypeError: if data is not a 2D numpy.ndarray
