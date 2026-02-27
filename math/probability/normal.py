@@ -7,7 +7,6 @@ class Normal:
 
     def __init__(self, data=None, mean=0., stddev=1.):
         """Initialize the Normal distribution."""
-        
         if data is not None:
             if not isinstance(data, list):
                 raise TypeError("data must be a list")
