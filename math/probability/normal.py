@@ -38,12 +38,31 @@ class Normal:
         coeff = 1 / (self.stddev * ((2 * pi) ** 0.5))
         return coeff * (e ** (-exp_part))
 
-    def cdf(self, x):
-        """Calculates the CDF at x"""
-        pi = 3.1415926536
+def cdf(self, x):
+    """Calculates the CDF for x"""
 
-        z = (x - self.mean) / (self.stddev * (2 ** 0.5))
-        # Approximate erf(z) using Maclaurin series
-        erf = (z - (z ** 3) / 3 + (z ** 5) / 10 -
-               (z ** 7) / 42 + (z ** 9) / 216)
-        return 0.5 * (1 + erf)
+    # Constants
+    pi = 3.1415926536
+    e = 2.7182818285
+
+    # Standardize
+    z = (x - self.mean) / (self.stddev * (2 ** 0.5))
+
+    # Abramowitz & Stegun approximation
+    t = 1.0 / (1.0 + 0.3275911 * abs(z))
+
+    a1 = 0.254829592
+    a2 = -0.284496736
+    a3 = 1.421413741
+    a4 = -1.453152027
+    a5 = 1.061405429
+
+    erf = 1 - (
+        (((((a5 * t) + a4) * t + a3) * t + a2) * t + a1)
+        * t * (e ** (-z * z))
+    )
+
+    if z < 0:
+        erf = -erf
+
+    return 0.5 * (1 + erf)
