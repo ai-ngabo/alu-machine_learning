@@ -24,22 +24,22 @@ class Normal:
             for value in data:
                 variance += (value - self.mean) ** 2
 
-            variance /= len(data)
+            variance /= len(data)  # MUST be len(data), not len(data)-1
             self.stddev = variance ** 0.5
 
     def z_score(self, x):
-        """Calculate the z-score of x"""
+        """Calculate z-score"""
         return (x - self.mean) / self.stddev
 
     def x_value(self, z):
-        """Calculate the x-value of a z-score"""
+        """Calculate x-value"""
         return z * self.stddev + self.mean
 
     def cdf(self, x):
-        """Calculate the cumulative distribution function"""
+        """Calculate CDF"""
         z = (x - self.mean) / (self.stddev * (2 ** 0.5))
 
-        # Abramowitz and Stegun approximation
+        # Abramowitz and Stegun constants
         a1 = 0.254829592
         a2 = -0.284496736
         a3 = 1.421413741
@@ -53,8 +53,11 @@ class Normal:
         z = abs(z)
 
         t = 1 / (1 + p * z)
-        erf = 1 - (((((a5 * t + a4) * t + a3) * t + a2) * t + a1)
-                   * t * (2.718281828459045 ** (-z ** 2)))
+
+        exp_approx = 2.718281828459045 ** (-z * z)
+
+        erf = 1 - (((((a5 * t + a4) * t + a3) * t + a2)
+                    * t + a1) * t * exp_approx)
 
         erf *= sign
 
