@@ -6,9 +6,6 @@ class Exponential:
     """Represents an exponential distribution"""
 
     def __init__(self, data=None, lambtha=1.):
-        """
-        Class constructor
-        """
 
         if data is None:
             if lambtha <= 0:
@@ -26,12 +23,19 @@ class Exponential:
             self.lambtha = float(1 / mean)
 
     def pdf(self, x):
-        """
-        Calculates the PDF for a given time period x
-        """
+        """Calculates the PDF for a given time period x"""
 
         if x < 0:
             return 0
 
         e = 2.7182818285
         return self.lambtha * (e ** (-self.lambtha * x))
+
+    def cdf(self, x):
+        """Calculates the CDF for a given time period x"""
+
+        if x < 0:
+            return 0
+
+        e = 2.7182818285
+        return 1 - (e ** (-self.lambtha * x))
