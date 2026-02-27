@@ -28,7 +28,6 @@ class Normal:
             for x in data:
                 variance += (x - self.mean) ** 2
 
-            # SAMPLE variance (important for ALU)
             variance /= (len(data) - 1)
 
             self.stddev = float(variance ** 0.5)
@@ -44,8 +43,8 @@ class Normal:
     def pdf(self, x):
         """Calculates the PDF for x"""
 
-        pi = 3.1415926536
-        e = 2.7182818285
+        pi = 3.141592653589793
+        e = 2.718281828459045
 
         coeff = 1 / (self.stddev * ((2 * pi) ** 0.5))
         exponent = -((x - self.mean) ** 2) / (2 * self.stddev ** 2)
@@ -55,7 +54,7 @@ class Normal:
     def cdf(self, x):
         """Calculates the CDF for x"""
 
-        e = 2.7182818285
+        e = 2.718281828459045
 
         z = (x - self.mean) / (self.stddev * (2 ** 0.5))
 
@@ -68,8 +67,8 @@ class Normal:
         a5 = 1.061405429
 
         erf = 1 - (
-            (((((a5 * t) + a4) * t + a3) * t + a2) * t + a1)
-            * t * (e ** (-z * z))
+            (((((a5 * t + a4) * t + a3) * t + a2) * t + a1)
+             * t * (e ** (-z * z)))
         )
 
         if z < 0:
