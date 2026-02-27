@@ -28,7 +28,8 @@ class Normal:
             for x in data:
                 variance += (x - self.mean) ** 2
 
-            variance /= (len(data) - 1)
+            # ✅ POPULATION variance (divide by n)
+            variance /= len(data)
 
             self.stddev = float(variance ** 0.5)
 
