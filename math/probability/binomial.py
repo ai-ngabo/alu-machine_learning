@@ -13,13 +13,12 @@ class Binomial:
             if len(data) < 2:
                 raise ValueError("data must contain multiple values")
 
-            # Estimate p from data
+            # Calculate mean and variance from data
             mean_data = sum(data) / len(data)
-            p_est = mean_data / max(data)  # first estimate p
-            # Estimate n
             variance_data = sum((x - mean_data) ** 2 for x in data) / len(data)
-            n_est = round(mean_data / p_est)
-            # Recalculate p based on rounded n
+
+            # Estimate n and p using method of moments
+            n_est = round((mean_data ** 2) / (mean_data - variance_data))
             self.n = n_est
             self.p = float(mean_data / n_est)
         else:
@@ -29,3 +28,20 @@ class Binomial:
                 raise ValueError("p must be greater than 0 and less than 1")
             self.n = int(n)
             self.p = float(p)
+
+    def pmf(self, k):
+        """Calculates the value of the PMF for a given number of successes k."""
+        if k < 0 or k > self.n:
+            return 0
+        # Compute combination nCk
+        comb = 1
+        for i in range(1, k + 1):
+            comb *= (self.n - i + 1) / i
+        return comb * (self.p ** k) * ((1 - self.p) ** (self.n - k))
+
+    def cdf(self, k):
+        """Calculates the value of the CDF for a given number of successes k."""
+        total = 0
+        for i in range(0, k + 1):
+            total += self.pmf(i)
+        return total
