@@ -6,19 +6,31 @@ class Normal:
     """Represents a normal distribution"""
 
     def __init__(self, data=None, mean=0., stddev=1.):
+        """Class constructor"""
+
         if data is None:
             if stddev <= 0:
                 raise ValueError("stddev must be a positive value")
+
             self.mean = float(mean)
             self.stddev = float(stddev)
+
         else:
             if not isinstance(data, list):
                 raise TypeError("data must be a list")
+
             if len(data) < 2:
                 raise ValueError("data must contain multiple values")
 
             self.mean = float(sum(data) / len(data))
-            variance = sum((x - self.mean) ** 2 for x in data) / len(data)
+
+            variance = 0
+            for x in data:
+                variance += (x - self.mean) ** 2
+
+            # SAMPLE variance (important for ALU)
+            variance /= (len(data) - 1)
+
             self.stddev = float(variance ** 0.5)
 
     def z_score(self, x):
@@ -30,39 +42,37 @@ class Normal:
         return z * self.stddev + self.mean
 
     def pdf(self, x):
-        """Calculates the PDF at x"""
+        """Calculates the PDF for x"""
+
         pi = 3.1415926536
         e = 2.7182818285
 
-        exp_part = ((x - self.mean) ** 2) / (2 * self.stddev ** 2)
         coeff = 1 / (self.stddev * ((2 * pi) ** 0.5))
-        return coeff * (e ** (-exp_part))
+        exponent = -((x - self.mean) ** 2) / (2 * self.stddev ** 2)
 
-def cdf(self, x):
-    """Calculates the CDF for x"""
+        return coeff * (e ** exponent)
 
-    # Constants
-    pi = 3.1415926536
-    e = 2.7182818285
+    def cdf(self, x):
+        """Calculates the CDF for x"""
 
-    # Standardize
-    z = (x - self.mean) / (self.stddev * (2 ** 0.5))
+        e = 2.7182818285
 
-    # Abramowitz & Stegun approximation
-    t = 1.0 / (1.0 + 0.3275911 * abs(z))
+        z = (x - self.mean) / (self.stddev * (2 ** 0.5))
 
-    a1 = 0.254829592
-    a2 = -0.284496736
-    a3 = 1.421413741
-    a4 = -1.453152027
-    a5 = 1.061405429
+        t = 1.0 / (1.0 + 0.3275911 * abs(z))
 
-    erf = 1 - (
-        (((((a5 * t) + a4) * t + a3) * t + a2) * t + a1)
-        * t * (e ** (-z * z))
-    )
+        a1 = 0.254829592
+        a2 = -0.284496736
+        a3 = 1.421413741
+        a4 = -1.453152027
+        a5 = 1.061405429
 
-    if z < 0:
-        erf = -erf
+        erf = 1 - (
+            (((((a5 * t) + a4) * t + a3) * t + a2) * t + a1)
+            * t * (e ** (-z * z))
+        )
 
-    return 0.5 * (1 + erf)
+        if z < 0:
+            erf = -erf
+
+        return 0.5 * (1 + erf)
