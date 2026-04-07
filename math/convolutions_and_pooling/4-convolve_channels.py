@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-"""
-Module for performing convolution on multi-channel images with stride and padding.
-"""
+"""Module for image convolution with channels, stride, and padding options."""
 
 import numpy as np
 
@@ -10,61 +8,65 @@ def convolve_channels(images, kernel, padding='same', stride=(1, 1)):
     """
     Performs a convolution on images with channels.
 
-    Parameters:
-    - images (numpy.ndarray): shape (m, h, w, c)
-        Multiple images with channels
-    - kernel (numpy.ndarray): shape (kh, kw, c)
-        Kernel for the convolution
-    - padding (str or tuple): 'same', 'valid', or (ph, pw)
-        Padding mode or custom padding
-    - stride (tuple): (sh, sw)
-        Stride for height and width
+    Args:
+        images: numpy.ndarray with shape (m, h, w, c) containing multiple images
+        kernel: numpy.ndarray with shape (kh, kw, c) containing convolution kernel
+        padding: either a tuple of (ph, pw), 'same', or 'valid'
+        stride: tuple of (sh, sw) for stride in height and width
 
     Returns:
-    - numpy.ndarray: convolved images of shape (m, out_h, out_w)
+        numpy.ndarray containing the convolved images with shape (m, oh, ow)
     """
+    # Extract dimensions
     m, h, w, c = images.shape
     kh, kw, kc = kernel.shape
     sh, sw = stride
 
+    # Validate kernel channels match image channels
     if kc != c:
-        raise ValueError(
-            "Kernel channels must match image channels"
-        )
+        raise ValueError("Kernel channels must match image channels")
 
-    # Determine padding
-    if isinstance(padding, tuple):
-        ph, pw = padding
-    elif padding == 'same':
-        ph = ((h - 1) * sh + kh - h) // 2
-        pw = ((w - 1) * sw + kw - w) // 2
+    # Handle padding
+    if padding == 'same':
+        # Calculate padding needed to keep output size same as input
+        ph = ((h - 1) * sh + kh - h) // 2 + 1
+        pw = ((w - 1) * sw + kw - w) // 2 + 1
     elif padding == 'valid':
         ph, pw = 0, 0
     else:
-        raise ValueError(
-            "padding must be 'same', 'valid', or a tuple"
-        )
+        # Padding is a tuple
+        ph, pw = padding
+
+    # Calculate output dimensions
+    output_h = (h + 2 * ph - kh) // sh + 1
+    output_w = (w + 2 * pw - kw) // sw + 1
 
     # Pad images
-    padded = np.pad(
-        images, ((0, 0), (ph, ph), (pw, pw), (0, 0)), mode='constant'
+    padded_images = np.pad(
+        images,
+        ((0, 0), (ph, ph), (pw, pw), (0, 0)),
+        mode='constant',
+        constant_values=0
     )
 
-    # Output dimensions
-    out_h = (h + 2 * ph - kh) // sh + 1
-    out_w = (w + 2 * pw - kw) // sw + 1
-    output = np.zeros((m, out_h, out_w))
+    # Initialize output array
+    output = np.zeros((m, output_h, output_w))
 
-    # Perform convolution with only two loops
-    for i in range(out_h):
-        for j in range(out_w):
-            vert_start = i * sh
-            vert_end = vert_start + kh
-            horiz_start = j * sw
-            horiz_end = horiz_start + kw
+    # Perform convolution with stride using only two for loops
+    for i in range(output_h):
+        for j in range(output_w):
+            # Calculate the region in the padded image
+            h_start = i * sh
+            h_end = h_start + kh
+            w_start = j * sw
+            w_end = w_start + kw
 
-            image_slice = padded[:, vert_start:vert_end,
-                                 horiz_start:horiz_end, :]
-            output[:, i, j] = np.sum(image_slice * kernel, axis=(1, 2, 3))
+            # Extract region and perform element-wise multiplication
+            # Region shape: (m, kh, kw, c)
+            region = padded_images[:, h_start:h_end, w_start:w_end, :]
+
+            # Multiply region with kernel and sum over spatial dimensions
+            # and channels to produce single value per image
+            output[:, i, j] = np.sum(region * kernel, axis=(1, 2, 3))
 
     return output
