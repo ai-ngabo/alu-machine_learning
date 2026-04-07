@@ -4,7 +4,6 @@ Module for performing convolution on grayscale images with stride and padding.
 """
 
 import numpy as np
-import math
 
 
 def convolve_grayscale(images, kernel, padding='same', stride=(1, 1)):
@@ -32,8 +31,9 @@ def convolve_grayscale(images, kernel, padding='same', stride=(1, 1)):
     if isinstance(padding, tuple):
         ph, pw = padding
     elif padding == 'same':
-        ph = math.ceil(((h - 1) * sh + kh - h) / 2)
-        pw = math.ceil(((w - 1) * sw + kw - w) / 2)
+        # Equivalent to math.ceil without importing math
+        ph = ((h - 1) * sh + kh - h + 1) // 2
+        pw = ((w - 1) * sw + kw - w + 1) // 2
     elif padding == 'valid':
         ph, pw = 0, 0
     else:
