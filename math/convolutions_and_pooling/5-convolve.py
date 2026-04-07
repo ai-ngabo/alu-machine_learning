@@ -28,7 +28,9 @@ def convolve(images, kernels, padding='same', stride=(1, 1)):
     sh, sw = stride
 
     if kc != c:
-        raise ValueError("Kernel channels must match image channels")
+        raise ValueError(
+            "Kernel channels must match image channels"
+        )
 
     # Determine padding
     if isinstance(padding, tuple):
@@ -39,10 +41,14 @@ def convolve(images, kernels, padding='same', stride=(1, 1)):
     elif padding == 'valid':
         ph, pw = 0, 0
     else:
-        raise ValueError("padding must be 'same', 'valid', or a tuple")
+        raise ValueError(
+            "padding must be 'same', 'valid', or a tuple"
+        )
 
     # Pad images
-    padded = np.pad(images, ((0, 0), (ph, ph), (pw, pw), (0, 0)), mode='constant')
+    padded = np.pad(
+        images, ((0, 0), (ph, ph), (pw, pw), (0, 0)), mode='constant'
+    )
 
     # Output dimensions
     out_h = (h + 2 * ph - kh) // sh + 1
@@ -57,9 +63,11 @@ def convolve(images, kernels, padding='same', stride=(1, 1)):
             horiz_start = j * sw
             horiz_end = horiz_start + kw
 
-            image_slice = padded[:, vert_start:vert_end, horiz_start:horiz_end, :]
+            image_slice = padded[:, vert_start:vert_end,
+                                 horiz_start:horiz_end, :]
             for k in range(nc):
-                output[:, i, j, k] = np.sum(image_slice * kernels[:, :, :, k],
-                                            axis=(1, 2, 3))
+                output[:, i, j, k] = np.sum(
+                    image_slice * kernels[:, :, :, k], axis=(1, 2, 3)
+                )
 
     return output

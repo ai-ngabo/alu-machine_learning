@@ -46,6 +46,8 @@ def pool(images, kernel_shape, stride, mode='max'):
             elif mode == 'avg':
                 output[:, i, j, :] = np.mean(image_slice, axis=(1, 2))
             else:
-                raise ValueError("mode must be 'max' or 'avg'")
+                raise ValueError(
+                    "mode must be either 'max' or 'avg'"
+                )
 
     return output
