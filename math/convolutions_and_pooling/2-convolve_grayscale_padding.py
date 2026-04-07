@@ -19,7 +19,8 @@ def convolve_grayscale_padding(images, kernel, padding):
         Custom padding for height and width
 
     Returns:
-    - numpy.ndarray: convolved images of shape (m, h + 2*ph - kh + 1, w + 2*pw - kw + 1)
+    - numpy.ndarray: convolved images of shape
+      (m, h + 2*ph - kh + 1, w + 2*pw - kw + 1)
     """
     m, h, w = images.shape
     kh, kw = kernel.shape
