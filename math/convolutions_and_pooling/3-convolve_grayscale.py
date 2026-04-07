@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import numpy as np
 
 def convolve_grayscale(images, kernel, padding='same', stride=(1, 1)):
@@ -13,6 +15,7 @@ def convolve_grayscale(images, kernel, padding='same', stride=(1, 1)):
     Returns:
         numpy.ndarray containing the convolved images
     """
+    # Extract dimensions
     m, h, w = images.shape
     kh, kw = kernel.shape
     sh, sw = stride
