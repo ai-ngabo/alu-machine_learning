@@ -9,8 +9,10 @@ def convolve_channels(images, kernel, padding='same', stride=(1, 1)):
     Performs a convolution on images with channels.
 
     Args:
-        images: numpy.ndarray with shape (m, h, w, c) containing multiple images
-        kernel: numpy.ndarray with shape (kh, kw, c) containing convolution kernel
+        images: numpy.ndarray with shape (m, h, w, c) containing multiple
+                images
+        kernel: numpy.ndarray with shape (kh, kw, c) containing convolution
+                kernel
         padding: either a tuple of (ph, pw), 'same', or 'valid'
         stride: tuple of (sh, sw) for stride in height and width
 
