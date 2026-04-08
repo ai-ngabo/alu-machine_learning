@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-"""
-Module for performing pooling on multi-channel images.
-"""
+"""Module for pooling operations on images."""
 
 import numpy as np
 
@@ -10,44 +8,48 @@ def pool(images, kernel_shape, stride, mode='max'):
     """
     Performs pooling on images.
 
-    Parameters:
-    - images (numpy.ndarray): shape (m, h, w, c)
-        Multiple images with channels
-    - kernel_shape (tuple): (kh, kw)
-        Kernel shape for pooling
-    - stride (tuple): (sh, sw)
-        Stride for height and width
-    - mode (str): 'max' or 'avg'
-        Type of pooling
+    Args:
+        images: numpy.ndarray with shape (m, h, w, c) containing multiple
+                images
+        kernel_shape: tuple of (kh, kw) containing kernel shape for pooling
+        stride: tuple of (sh, sw) for stride in height and width
+        mode: indicates type of pooling, either 'max' or 'avg'
 
     Returns:
-    - numpy.ndarray: pooled images of shape (m, out_h, out_w, c)
+        numpy.ndarray containing the pooled images with shape
+        (m, oh, ow, c)
     """
+    # Extract dimensions
     m, h, w, c = images.shape
     kh, kw = kernel_shape
     sh, sw = stride
 
-    # Output dimensions
-    out_h = (h - kh) // sh + 1
-    out_w = (w - kw) // sw + 1
-    output = np.zeros((m, out_h, out_w, c))
+    # Calculate output dimensions
+    output_h = (h - kh) // sh + 1
+    output_w = (w - kw) // sw + 1
 
-    # Perform pooling with only two loops
-    for i in range(out_h):
-        for j in range(out_w):
-            vert_start = i * sh
-            vert_end = vert_start + kh
-            horiz_start = j * sw
-            horiz_end = horiz_start + kw
+    # Initialize output array
+    output = np.zeros((m, output_h, output_w, c))
 
-            image_slice = images[:, vert_start:vert_end, horiz_start:horiz_end, :]
+    # Perform pooling using exactly two for loops
+    for i in range(output_h):
+        for j in range(output_w):
+            # Calculate the region in the image
+            h_start = i * sh
+            h_end = h_start + kh
+            w_start = j * sw
+            w_end = w_start + kw
+
+            # Extract region: shape (m, kh, kw, c)
+            region = images[:, h_start:h_end, w_start:w_end, :]
+
             if mode == 'max':
-                output[:, i, j, :] = np.max(image_slice, axis=(1, 2))
+                # Max pooling: take maximum value over height and width
+                output[:, i, j, :] = np.max(region, axis=(1, 2))
             elif mode == 'avg':
-                output[:, i, j, :] = np.mean(image_slice, axis=(1, 2))
+                # Average pooling: take mean over height and width
+                output[:, i, j, :] = np.mean(region, axis=(1, 2))
             else:
-                raise ValueError(
-                    "mode must be either 'max' or 'avg'"
-                )
+                raise ValueError("Mode must be either 'max' or 'avg'")
 
     return output
