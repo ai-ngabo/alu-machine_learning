@@ -32,21 +32,20 @@ class NeuralNetwork:
         ValueError
             If nodes is less than 1.
         """
-        if not isinstance(nx, int):
+        if type(nx) is not int:
             raise TypeError("nx must be an integer")
         if nx < 1:
             raise ValueError("nx must be a positive integer")
 
-        if not isinstance(nodes, int):
+        if type(nodes) is not int:
             raise TypeError("nodes must be an integer")
         if nodes < 1:
             raise ValueError("nodes must be a positive integer")
 
         # Public instance attributes
-        self.W1 = np.random.randn(nodes, nx)   # weights vector for hidden layer
-        self.b1 = np.zeros((nodes, 1))         # bias for hidden layer
-        self.A1 = 0                            # activated output for hidden layer
-        self.W2 = np.random.randn(1, nodes)    # weights vector for output neuron
-        self.b2 = 0                            # bias for output neuron
-        self.A2 = 0                            # activated output for output neuron (prediction)
-        
+        self.W1 = np.random.randn(nodes, nx)
+        self.b1 = np.zeros((nodes, 1))
+        self.A1 = 0
+        self.W2 = np.random.randn(1, nodes)
+        self.b2 = 0
+        self.A2 = 0
