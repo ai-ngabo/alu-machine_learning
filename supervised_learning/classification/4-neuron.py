@@ -105,7 +105,7 @@ class Neuron:
         -------
         tuple
             (prediction, cost)
-            prediction: numpy.ndarray with shape (1, m) containing predicted labels
+            prediction: numpy.ndarray with shape (1, m) 
             cost: float representing the cost of the network
         """
         A = self.forward_prop(X)
