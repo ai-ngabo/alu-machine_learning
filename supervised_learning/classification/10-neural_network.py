@@ -1,16 +1,14 @@
 #!/usr/bin/env python3
 """
 Module 9-neural_network
-Defines a neural network with one hidden layer 
-performing binary classification.
+Defines a neural network with one hidden layer performing binary classification.
 """
 
 import numpy as np
 
 
 class NeuralNetwork:
-    """Defines a neural network with one hidden 
-    layer performing binary classification"""
+    """Defines a neural network with one hidden layer performing binary classification"""
 
     def __init__(self, nx, nodes):
         """

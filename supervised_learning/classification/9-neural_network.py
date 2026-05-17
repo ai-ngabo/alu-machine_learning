@@ -54,30 +54,24 @@ class NeuralNetwork:
     # Getter methods
     @property
     def W1(self):
-        """Getter for hidden layer weights"""
         return self.__W1
 
     @property
     def b1(self):
-        """Getter for hidden layer bias"""
         return self.__b1
 
     @property
     def A1(self):
-        """Getter for hidden layer activated output"""
         return self.__A1
 
     @property
     def W2(self):
-        """Getter for output layer weights"""
         return self.__W2
 
     @property
     def b2(self):
-        """Getter for output layer bias"""
         return self.__b2
 
     @property
     def A2(self):
-        """Getter for output layer activated output"""
         return self.__A2
