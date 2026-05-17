@@ -12,12 +12,12 @@ class NeuralNetwork:
 
     def __init__(self, nx, nodes):
         """
-        Initialize the NeuralNetwork.
+        Initialize a Neural Network.
 
         Parameters
         ----------
         nx : int
-            Number of input features.
+            Number of input features to the neural network.
         nodes : int
             Number of nodes in the hidden layer.
 
@@ -36,48 +36,17 @@ class NeuralNetwork:
             raise TypeError("nx must be an integer")
         if nx < 1:
             raise ValueError("nx must be a positive integer")
+
         if not isinstance(nodes, int):
             raise TypeError("nodes must be an integer")
         if nodes < 1:
             raise ValueError("nodes must be a positive integer")
 
-        # Hidden layer parameters
-        self.__W1 = np.random.randn(nodes, nx)  # weights for hidden layer
-        self.__b1 = np.zeros((nodes, 1))        # bias for hidden layer
-        self.__A1 = 0                           # activated output for hidden layer
-
-        # Output layer parameters
-        self.__W2 = np.random.randn(1, nodes)   # weights for output neuron
-        self.__b2 = 0                           # bias for output neuron
-        self.__A2 = 0                           # activated output for output neuron
-
-    # Getter methods
-    @property
-    def W1(self):
-        """Getter for hidden layer weights"""
-        return self.__W1
-
-    @property
-    def b1(self):
-        """Getter for hidden layer bias"""
-        return self.__b1
-
-    @property
-    def A1(self):
-        """Getter for hidden layer activated output"""
-        return self.__A1
-
-    @property
-    def W2(self):
-        """Getter for output layer weights"""
-        return self.__W2
-
-    @property
-    def b2(self):
-        """Getter for output layer bias"""
-        return self.__b2
-
-    @property
-    def A2(self):
-        """Getter for output layer activated output"""
-        return self.__A2
+        # Public instance attributes
+        self.W1 = np.random.randn(nodes, nx)   # weights vector for hidden layer
+        self.b1 = np.zeros((nodes, 1))         # bias for hidden layer
+        self.A1 = 0                            # activated output for hidden layer
+        self.W2 = np.random.randn(1, nodes)    # weights vector for output neuron
+        self.b2 = 0                            # bias for output neuron
+        self.A2 = 0                            # activated output for output neuron (prediction)
+        
