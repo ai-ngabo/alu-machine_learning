@@ -6,9 +6,9 @@ Defines a single neuron performing binary classification.
 
 import numpy as np
 
-
 class Neuron:
     """Defines a single neuron performing binary classification"""
+
 
     def __init__(self, nx):
         """
@@ -34,3 +34,4 @@ class Neuron:
         self.W = np.random.randn(1, nx)  # weights vector
         self.b = 0                       # bias
         self.A = 0                       # activated output
+
