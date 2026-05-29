@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-Defines a deep neural network performing binary classification.
+Defines a deep neural network performing binary classification
+compatible with Python 3.5 environments.
 """
 import numpy as np
 
@@ -26,7 +27,6 @@ class DeepNeuralNetwork:
             raise TypeError("layers must be a list of positive integers")
 
         # The ONLY loop allowed in the entire function body
-        # Handles validation AND initialization together to comply with AST rules
         weights = {}
         for l in range(len(layers)):
             if not isinstance(layers[l], int) or layers[l] <= 0:
@@ -35,12 +35,14 @@ class DeepNeuralNetwork:
             n_prev = nx if l == 0 else layers[l - 1]
             he_variance = np.sqrt(2.0 / n_prev)
 
-            weights[f"W{l + 1}"] = (
-                np.random.randn(layers[l], n_prev) * he_variance
-            )
-            weights[f"b{l + 1}"] = np.zeros((layers[l], 1))
+            # Python 3.5 compatible string formatting
+            key_w = "W" + str(l + 1)
+            key_b = "b" + str(l + 1)
 
-        # Assignments happen ONLY after the loop successfully finishes validating
+            weights[key_w] = np.random.randn(layers[l], n_prev) * he_variance
+            weights[key_b] = np.zeros((layers[l], 1))
+
+        # Assignments happen ONLY after verification loops execute cleanly
         self.L = len(layers)
         self.cache = {}
         self.weights = weights
