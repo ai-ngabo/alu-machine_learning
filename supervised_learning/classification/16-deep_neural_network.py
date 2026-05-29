@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
-Defines a deep neural network performing binary classification
-using a strict single-loop architecture.
+Defines a deep neural network performing binary classification.
 """
 import numpy as np
 
@@ -26,22 +25,22 @@ class DeepNeuralNetwork:
         if not isinstance(layers, list) or len(layers) == 0:
             raise TypeError("layers must be a list of positive integers")
 
-        # Validate elements match positive integers without explicit loops
-        # conditional verification checks the list contents natively
-        if validation := [x for x in layers if not isinstance(x, int) or x <= 0]:
-            raise TypeError("layers must be a list of positive integers")
+        # The ONLY loop allowed in the entire function body
+        # Handles validation AND initialization together to comply with AST rules
+        weights = {}
+        for l in range(len(layers)):
+            if not isinstance(layers[l], int) or layers[l] <= 0:
+                raise TypeError("layers must be a list of positive integers")
 
-        # Set up instance attributes
-        self.L = len(layers)
-        self.cache = {}
-        self.weights = {}
-
-        # The ONLY permitted loop in the constructor
-        for l in range(self.L):
             n_prev = nx if l == 0 else layers[l - 1]
             he_variance = np.sqrt(2.0 / n_prev)
-            
-            self.weights[f"W{l + 1}"] = (
+
+            weights[f"W{l + 1}"] = (
                 np.random.randn(layers[l], n_prev) * he_variance
             )
-            self.weights[f"b{l + 1}"] = np.zeros((layers[l], 1))
+            weights[f"b{l + 1}"] = np.zeros((layers[l], 1))
+
+        # Assignments happen ONLY after the loop successfully finishes validating
+        self.L = len(layers)
+        self.cache = {}
+        self.weights = weights
