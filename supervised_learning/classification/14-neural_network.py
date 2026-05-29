@@ -151,7 +151,7 @@ class NeuralNetwork:
 
     def train(self, X, Y, iterations=5000, alpha=0.05):
         """
-        Trains the neural network using forward propagation and gradient descent.
+        Trains the neural network using forward prop and Gradient D
 
         Parameters:
         - X: numpy.ndarray with shape (nx, m) containing input data
