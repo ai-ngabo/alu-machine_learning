@@ -122,4 +122,3 @@ class NeuralNetwork:
         prediction = np.where(A2 >= 0.5, 1, 0)
 
         return prediction, cost
-
