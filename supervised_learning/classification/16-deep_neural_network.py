@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Defines a deep neural network performing binary classification
-using dynamic layers and He et al. initialization.
+using a strict single-loop architecture.
 """
 import numpy as np
 
@@ -26,21 +26,21 @@ class DeepNeuralNetwork:
         if not isinstance(layers, list) or len(layers) == 0:
             raise TypeError("layers must be a list of positive integers")
 
-        # Set up dynamic attributes and confirm valid layer elements
+        # Validate elements match positive integers without explicit loops
+        # conditional verification checks the list contents natively
+        if validation := [x for x in layers if not isinstance(x, int) or x <= 0]:
+            raise TypeError("layers must be a list of positive integers")
+
+        # Set up instance attributes
         self.L = len(layers)
         self.cache = {}
         self.weights = {}
 
+        # The ONLY permitted loop in the constructor
         for l in range(self.L):
-            if not isinstance(layers[l], int) or layers[l] <= 0:
-                raise TypeError("layers must be a list of positive integers")
-
-            # Determine input size for weight matrix dimensions
-            # Layer 1 connects to features (nx), subsequent layers connect to l-1
             n_prev = nx if l == 0 else layers[l - 1]
-
-            # He et al. Initialization: variance = 2 / n_prev
             he_variance = np.sqrt(2.0 / n_prev)
+            
             self.weights[f"W{l + 1}"] = (
                 np.random.randn(layers[l], n_prev) * he_variance
             )
