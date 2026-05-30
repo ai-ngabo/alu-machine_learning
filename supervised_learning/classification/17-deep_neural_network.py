@@ -16,13 +16,13 @@ class DeepNeuralNetwork:
 
         Parameters:
             nx (int): The number of input features.
-            layers (list): The number of nodes in each layer of the network.
+            layers (list): The number of nodes in each layer.
         """
         if not isinstance(nx, int):
             raise TypeError("nx must be an integer")
         if nx < 1:
             raise ValueError("nx must be a positive integer")
-        
+
         if not isinstance(layers, list) or len(layers) == 0:
             raise TypeError("layers must be a list of positive integers")
 
@@ -34,14 +34,17 @@ class DeepNeuralNetwork:
             if not isinstance(layers[i], int) or layers[i] <= 0:
                 raise TypeError("layers must be a list of positive integers")
 
-            # First layer uses nx, subsequent layers use the size of the previous layer
             n_in = nx if i == 0 else layers[i - 1]
             n_out = layers[i]
 
             # He et al. initialization
-            self.__weights[f"W{i + 1}"] = np.random.randn(n_out, n_in) * np.sqrt(2.0 / n_in)
-            # Bias initialization
-            self.__weights[f"b{i + 1}"] = np.zeros((n_out, 1))
+            w_key = "W{}".format(i + 1)
+            b_key = "b{}".format(i + 1)
+
+            self.__weights[w_key] = (
+                np.random.randn(n_out, n_in) * np.sqrt(2.0 / n_in)
+            )
+            self.__weights[b_key] = np.zeros((n_out, 1))
 
     @property
     def L(self):
