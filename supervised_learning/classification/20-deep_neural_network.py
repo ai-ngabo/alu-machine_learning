@@ -1,58 +1,125 @@
 #!/usr/bin/env python3
 """
-Deep Neural Network class for binary classification
+Defines a deep neural network performing binary classification.
 """
 import numpy as np
 
 
 class DeepNeuralNetwork:
     """
-    Defines a deep neural network for binary classification
+    Represents a deep neural network.
     """
-    
+
     def __init__(self, nx, layers):
         """
-        Class constructor for DeepNeuralNetwork
-        
-        Args:
-            nx (int): Number of input features
-            layers (list): List representing number of nodes in each layer
+        Initializes the deep neural network.
+
+        Parameters:
+            nx (int): The number of input features.
+            layers (list): The number of nodes in each layer.
         """
         if not isinstance(nx, int):
             raise TypeError("nx must be an integer")
         if nx < 1:
             raise ValueError("nx must be a positive integer")
-        
+
         if not isinstance(layers, list) or len(layers) == 0:
             raise TypeError("layers must be a list of positive integers")
-        
+
         self.__L = len(layers)
         self.__cache = {}
         self.__weights = {}
-        
-        # ONE loop only - this is the only loop in the entire script
+
         for i in range(self.__L):
-            if not isinstance(layers[i], int) or layers[i] < 1:
+            if not isinstance(layers[i], int) or layers[i] <= 0:
                 raise TypeError("layers must be a list of positive integers")
-            
-            if i == 0:
-                self.__weights['W{}'.format(i + 1)] = np.random.randn(layers[i], nx) * np.sqrt(2 / nx)
-            else:
-                self.__weights['W{}'.format(i + 1)] = np.random.randn(layers[i], layers[i - 1]) * np.sqrt(2 / layers[i - 1])
-            
-            self.__weights['b{}'.format(i + 1)] = np.zeros((layers[i], 1))
-    
+
+            n_in = nx if i == 0 else layers[i - 1]
+            n_out = layers[i]
+
+            w_key = "W{}".format(i + 1)
+            b_key = "b{}".format(i + 1)
+
+            self.__weights[w_key] = (
+                np.random.randn(n_out, n_in) * np.sqrt(2.0 / n_in)
+            )
+            self.__weights[b_key] = np.zeros((n_out, 1))
+
     @property
     def L(self):
-        """Getter for L"""
+        """Getter for the number of layers."""
         return self.__L
-    
+
     @property
     def cache(self):
-        """Getter for cache"""
+        """Getter for the intermediary values cache."""
         return self.__cache
-    
+
     @property
     def weights(self):
-        """Getter for weights"""
+        """Getter for the weights and biases dictionary."""
         return self.__weights
+
+    def forward_prop(self, X):
+        """
+        Calculates the forward propagation of the neural network.
+
+        Parameters:
+            X (numpy.ndarray): Input data with shape (nx, m).
+
+        Returns:
+            The output of the neural network and the cache dictionary.
+        """
+        self.__cache["A0"] = X
+
+        for i in range(self.__L):
+            w_key = "W{}".format(i + 1)
+            b_key = "b{}".format(i + 1)
+            a_prev_key = "A{}".format(i)
+            a_curr_key = "A{}".format(i + 1)
+
+            W = self.__weights[w_key]
+            b = self.__weights[b_key]
+            A_prev = self.__cache[a_prev_key]
+
+            Z = np.dot(W, A_prev) + b
+            self.__cache[a_curr_key] = 1.0 / (1.0 + np.exp(-Z))
+
+        return self.__cache["A{}".format(self.__L)], self.__cache
+
+    def cost(self, Y, A):
+        """
+        Calculates the cost of the model using logistic regression.
+
+        Parameters:
+            Y (numpy.ndarray): Correct labels with shape (1, m).
+            A (numpy.ndarray): Activated output with shape (1, m).
+
+        Returns:
+            The cost value.
+        """
+        m = Y.shape[1]
+
+        # Logistic regression cross-entropy cost formula:
+        # loss = -(Y * log(A) + (1 - Y) * log(1.0000001 - A))
+        loss = Y * np.log(A) + (1.0 - Y) * np.log(1.0000001 - A)
+        cost = -1.0 / m * np.sum(loss)
+
+        return cost
+
+    def evaluate(self, X, Y):
+        """
+        Evaluates the neural network's predictions.
+
+        Parameters:
+            X (numpy.ndarray): Input data with shape (nx, m).
+            Y (numpy.ndarray): Correct labels with shape (1, m).
+
+        Returns:
+            prediction (numpy.ndarray): Evaluated labels (1 or 0).
+            cost (float): Cost value of the network.
+        """
+        A, cost = self.forward_prop(X)
+        prediction = np.where(A >= 0.5, 1, 0)
+
+        return prediction, cost
