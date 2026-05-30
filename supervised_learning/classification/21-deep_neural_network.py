@@ -26,11 +26,11 @@ class DeepNeuralNetwork:
         self.__cache = {}
         self.__weights = {}
         
+        # Loop #1
         for i in range(self.__L):
             if type(layers[i]) is not int or layers[i] < 1:
                 raise TypeError("layers must be a list of positive integers")
             
-            # He et al. initialization
             if i == 0:
                 self.__weights['W{}'.format(i + 1)] = np.random.randn(layers[i], nx) * np.sqrt(2.0 / nx)
             else:
@@ -56,16 +56,10 @@ class DeepNeuralNetwork:
     def forward_prop(self, X):
         """
         Calculates forward propagation of the neural network
-        
-        Args:
-            X (numpy.ndarray): Input data with shape (nx, m)
-        
-        Returns:
-            A (numpy.ndarray): Output of the neural network
-            cache (dict): Dictionary containing all intermediary values
         """
         self.__cache['A0'] = X
         
+        # Loop #2
         for i in range(self.__L):
             W = self.__weights['W{}'.format(i + 1)]
             b = self.__weights['b{}'.format(i + 1)]
@@ -80,13 +74,6 @@ class DeepNeuralNetwork:
     def cost(self, Y, A):
         """
         Calculates the cost of the model using logistic regression
-        
-        Args:
-            Y (numpy.ndarray): Correct labels with shape (1, m)
-            A (numpy.ndarray): Activated output with shape (1, m)
-        
-        Returns:
-            cost (float): The cost value
         """
         m = Y.shape[1]
         cost = -np.sum(Y * np.log(A) + (1 - Y) * np.log(1.0000001 - A)) / m
@@ -95,14 +82,6 @@ class DeepNeuralNetwork:
     def evaluate(self, X, Y):
         """
         Evaluates the neural network's predictions
-        
-        Args:
-            X (numpy.ndarray): Input data with shape (nx, m)
-            Y (numpy.ndarray): Correct labels with shape (1, m)
-        
-        Returns:
-            prediction (numpy.ndarray): Evaluated labels (1 or 0)
-            cost (float): Cost value of the network
         """
         A, _ = self.forward_prop(X)
         prediction = np.where(A >= 0.5, 1, 0)
@@ -112,42 +91,23 @@ class DeepNeuralNetwork:
     def gradient_descent(self, Y, cache, alpha=0.05):
         """
         Calculates one pass of gradient descent on the neural network
-        
-        Args:
-            Y (numpy.ndarray): Correct labels with shape (1, m)
-            cache (dict): Dictionary containing all intermediary values
-            alpha (float): Learning rate
         """
         m = Y.shape[1]
         
-        # Initialize derivatives list (going backwards)
-        derivatives = {}
-        
-        # Loop backwards through layers (only one loop allowed)
+        # Loop #3 - going backwards through layers
         for i in range(self.__L, 0, -1):
             A_curr = cache['A{}'.format(i)]
             A_prev = cache['A{}'.format(i - 1)]
-            W = self.__weights['W{}'.format(i)]
             
             if i == self.__L:
-                # Last layer derivative
                 dz = A_curr - Y
             else:
-                # Hidden layer derivative
+                W_next = self.__weights['W{}'.format(i + 1)]
+                dz_next = dz
                 dz = np.matmul(W_next.T, dz_next) * (A_curr * (1 - A_curr))
             
-            # Calculate gradients
             dw = np.matmul(dz, A_prev.T) / m
             db = np.sum(dz, axis=1, keepdims=True) / m
             
-            # Store derivatives for next iteration
-            derivatives['dw{}'.format(i)] = dw
-            derivatives['db{}'.format(i)] = db
-            
-            # Update weights and biases (gradient descent step)
-            self.__weights['W{}'.format(i)] = self.__weights['W{}'.format(i)] - alpha * dw
-            self.__weights['b{}'.format(i)] = self.__weights['b{}'.format(i)] - alpha * db
-            
-            # Store for next layer's calculation
-            W_next = W
-            dz_next = dz
+            self.__weights['W{}'.format(i)] -= alpha * dw
+            self.__weights['b{}'.format(i)] -= alpha * db
