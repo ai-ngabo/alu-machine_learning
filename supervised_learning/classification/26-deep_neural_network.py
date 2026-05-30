@@ -186,7 +186,7 @@ class DeepNeuralNetwork:
             if not isinstance(step, int):
                 raise TypeError("step must be an integer")
             if step <= 0 or step > iterations:
-                raise ValueError("step must be a positive integer and <= iterations")
+                raise ValueError("step must be a positive integer")
 
         for itr in range(iterations):
             A, cache = self.forward_prop(X)
@@ -221,12 +221,8 @@ class DeepNeuralNetwork:
     def load(filename):
         """
         Loads a pickled DeepNeuralNetwork object from disk.
-
         Parameters:
             filename (str): File destination path location.
-
-        Returns:
-            DeepNeuralNetwork: Restored network object, or None 
         """
         import os
         import pickle

@@ -30,7 +30,6 @@ def one_hot_encode(Y, classes):
     try:
         m = Y.shape[0]
         one_hot = np.zeros((classes, m))
-        # Advanced indexing: pairs row indices from Y 
         one_hot[Y, np.arange(m)] = 1.0
         return one_hot
     except Exception:
