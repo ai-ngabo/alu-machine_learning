@@ -106,8 +106,9 @@ class DeepNeuralNetwork:
             The cost value.
         """
         m = Y.shape[1]
-        # Avoid log(0) error using an elements element-wise summation trace
-        loss = Y * np.log(A + 1e-15)
+        # Use np.clip to prevent log(0) without altering correct numbers
+        A_clipped = np.clip(A, 1e-15, 1 - 1e-15)
+        loss = Y * np.log(A_clipped)
         cost = -1.0 / m * np.sum(loss)
 
         return cost
@@ -127,7 +128,6 @@ class DeepNeuralNetwork:
         A, _ = self.forward_prop(X)
         cost = self.cost(Y, A)
 
-        # Build clean matching one-hot frame dimensions natively
         prediction = np.zeros(A.shape)
         max_indices = np.argmax(A, axis=0)
         prediction[max_indices, np.arange(A.shape[1])] = 1.0
@@ -198,19 +198,42 @@ class DeepNeuralNetwork:
                 msg = "step must be a positive integer and <= iterations"
                 raise ValueError(msg)
 
+        costs = []
+        steps = []
+
         for itr in range(iterations):
             A, cache = self.forward_prop(X)
-            if verbose and itr % step == 0:
-                print("Cost after {} iterations: {}".format(
-                    itr, self.cost(Y, A)))
+            if itr % step == 0:
+                current_cost = self.cost(Y, A)
+                if verbose:
+                    print("Cost after {} iterations: {}".format(
+                        itr, current_cost))
+                if graph:
+                    costs.append(current_cost)
+                    steps.append(itr)
             self.gradient_descent(Y, cache, alpha)
 
         A, _ = self.forward_prop(X)
+        final_cost = self.cost(Y, A)
+
         if verbose:
             print("Cost after {} iterations: {}".format(
-                iterations, self.cost(Y, A)))
+                iterations, final_cost))
+        if graph:
+            costs.append(final_cost)
+            steps.append(iterations)
+            import matplotlib.pyplot as plt
+            plt.plot(steps, costs, 'b-')
+            plt.xlabel('iteration')
+            plt.ylabel('cost')
+            plt.title('Training Cost')
+            plt.show()
 
-        return self.evaluate(X, Y)
+        prediction = np.zeros(A.shape)
+        max_indices = np.argmax(A, axis=0)
+        prediction[max_indices, np.arange(A.shape[1])] = 1.0
+
+        return prediction, final_cost
 
     def save(self, filename):
         """
@@ -236,13 +259,16 @@ class DeepNeuralNetwork:
             filename (str): File destination path location.
 
         Returns:
-            DeepNeuralNetwork: Restored network object
+            DeepNeuralNetwork: Restored network object, or None.
         """
         import os
         import pickle
 
         if not os.path.exists(filename):
-            return None
+            if not filename.endswith(".pkl") and os.path.exists(filename + ".pkl"):
+                filename += ".pkl"
+            else:
+                return None
 
         with open(filename, "rb") as f:
             return pickle.load(f)

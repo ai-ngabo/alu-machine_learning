@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Defines a deep neural network with configurable activation
+Defines a deep neural network with configurable hidden layer activations.
 """
 import numpy as np
 
@@ -95,7 +95,7 @@ class DeepNeuralNetwork:
             Z = np.dot(W, A_prev) + b
 
             if i == self.__L - 1:
-                # Softmax activation on output layer
+                # Softmax activation on output layer (stabilized)
                 t = np.exp(Z - np.max(Z, axis=0, keepdims=True))
                 self.__cache[a_curr_key] = t / np.sum(t, axis=0, keepdims=True)
             else:
@@ -119,9 +119,9 @@ class DeepNeuralNetwork:
             The cost value.
         """
         m = Y.shape[1]
-        loss = Y * np.log(A + 1e-15)
+        A_clipped = np.clip(A, 1e-15, 1 - 1e-15)
+        loss = Y * np.log(A_clipped)
         cost = -1.0 / m * np.sum(loss)
-
         return cost
 
     def evaluate(self, X, Y):
@@ -139,9 +139,10 @@ class DeepNeuralNetwork:
         A, _ = self.forward_prop(X)
         cost = self.cost(Y, A)
 
-        prediction = np.zeros(A.shape)
+        # Force prediction to be an integer matrix array type
+        prediction = np.zeros(A.shape, dtype=int)
         max_indices = np.argmax(A, axis=0)
-        prediction[max_indices, np.arange(A.shape[1])] = 1.0
+        prediction[max_indices, np.arange(A.shape[1])] = 1
 
         return prediction, cost
 
@@ -167,7 +168,6 @@ class DeepNeuralNetwork:
                 dZ = a_curr - Y
             else:
                 w_next = self.__weights["W{}".format(i + 1)]
-                # Apply derivative corresponding to active string flag
                 if self.__activation == 'sig':
                     d_act = a_curr * (1.0 - a_curr)
                 elif self.__activation == 'tanh':
@@ -214,19 +214,42 @@ class DeepNeuralNetwork:
                 msg = "step must be a positive integer and <= iterations"
                 raise ValueError(msg)
 
+        costs = []
+        steps = []
+
         for itr in range(iterations):
             A, cache = self.forward_prop(X)
-            if verbose and itr % step == 0:
-                print("Cost after {} iterations: {}".format(
-                    itr, self.cost(Y, A)))
+            if itr % step == 0:
+                current_cost = self.cost(Y, A)
+                if verbose:
+                    print("Cost after {} iterations: {}".format(
+                        itr, current_cost))
+                if graph:
+                    costs.append(current_cost)
+                    steps.append(itr)
             self.gradient_descent(Y, cache, alpha)
 
         A, _ = self.forward_prop(X)
+        final_cost = self.cost(Y, A)
+
         if verbose:
             print("Cost after {} iterations: {}".format(
-                iterations, self.cost(Y, A)))
+                iterations, final_cost))
+        if graph:
+            costs.append(final_cost)
+            steps.append(iterations)
+            import matplotlib.pyplot as plt
+            plt.plot(steps, costs, 'b-')
+            plt.xlabel('iteration')
+            plt.ylabel('cost')
+            plt.title('Training Cost')
+            plt.show()
 
-        return self.evaluate(X, Y)
+        prediction = np.zeros(A.shape, dtype=int)
+        max_indices = np.argmax(A, axis=0)
+        prediction[max_indices, np.arange(A.shape[1])] = 1
+
+        return prediction, final_cost
 
     def save(self, filename):
         """
@@ -252,13 +275,16 @@ class DeepNeuralNetwork:
             filename (str): File destination path location.
 
         Returns:
-            DeepNeuralNetwork: Restored network object\
+            DeepNeuralNetwork: Restored network object, or none.
         """
         import os
         import pickle
 
         if not os.path.exists(filename):
-            return None
+            if not filename.endswith(".pkl") and os.path.exists(filename + ".pkl"):
+                filename += ".pkl"
+            else:
+                return None
 
         with open(filename, "rb") as f:
             return pickle.load(f)
