@@ -52,3 +52,102 @@ class DeepNeuralNetwork:
     def weights(self):
         """Get the weights dictionary"""
         return self.__weights
+    
+    def forward_prop(self, X):
+        """
+        Calculates forward propagation of the neural network
+        
+        Args:
+            X (numpy.ndarray): Input data with shape (nx, m)
+        
+        Returns:
+            A (numpy.ndarray): Output of the neural network
+            cache (dict): Dictionary containing all intermediary values
+        """
+        self.__cache['A0'] = X
+        
+        for i in range(self.__L):
+            W = self.__weights['W{}'.format(i + 1)]
+            b = self.__weights['b{}'.format(i + 1)]
+            A_prev = self.__cache['A{}'.format(i)]
+            
+            Z = np.matmul(W, A_prev) + b
+            A = 1 / (1 + np.exp(-Z))
+            self.__cache['A{}'.format(i + 1)] = A
+        
+        return self.__cache['A{}'.format(self.__L)], self.__cache
+    
+    def cost(self, Y, A):
+        """
+        Calculates the cost of the model using logistic regression
+        
+        Args:
+            Y (numpy.ndarray): Correct labels with shape (1, m)
+            A (numpy.ndarray): Activated output with shape (1, m)
+        
+        Returns:
+            cost (float): The cost value
+        """
+        m = Y.shape[1]
+        cost = -np.sum(Y * np.log(A) + (1 - Y) * np.log(1.0000001 - A)) / m
+        return cost
+    
+    def evaluate(self, X, Y):
+        """
+        Evaluates the neural network's predictions
+        
+        Args:
+            X (numpy.ndarray): Input data with shape (nx, m)
+            Y (numpy.ndarray): Correct labels with shape (1, m)
+        
+        Returns:
+            prediction (numpy.ndarray): Evaluated labels (1 or 0)
+            cost (float): Cost value of the network
+        """
+        A, _ = self.forward_prop(X)
+        prediction = np.where(A >= 0.5, 1, 0)
+        cost = self.cost(Y, A)
+        return prediction, cost
+    
+    def gradient_descent(self, Y, cache, alpha=0.05):
+        """
+        Calculates one pass of gradient descent on the neural network
+        
+        Args:
+            Y (numpy.ndarray): Correct labels with shape (1, m)
+            cache (dict): Dictionary containing all intermediary values
+            alpha (float): Learning rate
+        """
+        m = Y.shape[1]
+        
+        # Initialize derivatives list (going backwards)
+        derivatives = {}
+        
+        # Loop backwards through layers (only one loop allowed)
+        for i in range(self.__L, 0, -1):
+            A_curr = cache['A{}'.format(i)]
+            A_prev = cache['A{}'.format(i - 1)]
+            W = self.__weights['W{}'.format(i)]
+            
+            if i == self.__L:
+                # Last layer derivative
+                dz = A_curr - Y
+            else:
+                # Hidden layer derivative
+                dz = np.matmul(W_next.T, dz_next) * (A_curr * (1 - A_curr))
+            
+            # Calculate gradients
+            dw = np.matmul(dz, A_prev.T) / m
+            db = np.sum(dz, axis=1, keepdims=True) / m
+            
+            # Store derivatives for next iteration
+            derivatives['dw{}'.format(i)] = dw
+            derivatives['db{}'.format(i)] = db
+            
+            # Update weights and biases (gradient descent step)
+            self.__weights['W{}'.format(i)] = self.__weights['W{}'.format(i)] - alpha * dw
+            self.__weights['b{}'.format(i)] = self.__weights['b{}'.format(i)] - alpha * db
+            
+            # Store for next layer's calculation
+            W_next = W
+            dz_next = dz
