@@ -34,14 +34,13 @@ class DeepNeuralNetwork:
             if not isinstance(layers[i], int) or layers[i] <= 0:
                 raise TypeError("layers must be a list of positive integers")
 
-            # Determine the input dimension for the current layer
-            # For the first layer, it's nx. For subsequent layers, it's the size of the previous layer.
+            # First layer uses nx, subsequent layers use the size of the previous layer
             n_in = nx if i == 0 else layers[i - 1]
             n_out = layers[i]
 
-            # He et al. initialization: random normal scaled by sqrt(2 / n_in)
+            # He et al. initialization
             self.__weights[f"W{i + 1}"] = np.random.randn(n_out, n_in) * np.sqrt(2.0 / n_in)
-            # Biases initialized to zeros
+            # Bias initialization
             self.__weights[f"b{i + 1}"] = np.zeros((n_out, 1))
 
     @property
