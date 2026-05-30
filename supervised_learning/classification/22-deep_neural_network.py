@@ -179,8 +179,12 @@ class DeepNeuralNetwork:
             raise ValueError("alpha must be positive")
 
         for _ in range(iterations):
-            _, cache = self.forward_prop(X)
+            A, cache = self.forward_prop(X)
             self.gradient_descent(Y, cache, alpha)
 
-        return self.evaluate(X, Y)
-    
+        # Run final forward pass to preserve pristine post-training matrix value
+        A, _ = self.forward_prop(X)
+        cost = self.cost(Y, A)
+        prediction = np.where(A >= 0.5, 1, 0)
+
+        return prediction, cost
