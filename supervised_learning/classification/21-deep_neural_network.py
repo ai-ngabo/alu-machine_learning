@@ -26,18 +26,17 @@ class DeepNeuralNetwork:
         self.__cache = {}
         self.__weights = {}
 
-        # Loop #1
         for i in range(self.__L):
             if type(layers[i]) is not int or layers[i] < 1:
                 raise TypeError("layers must be a list of positive integers")
 
             if i == 0:
-                he_init = np.random.randn(layers[i], nx) * np.sqrt(2.0 / nx)
-                self.__weights['W{}'.format(i + 1)] = he_init
+                self.__weights['W{}'.format(i + 1)] = (
+                    np.random.randn(layers[i], nx) * np.sqrt(2 / nx))
             else:
-                he_init = np.random.randn(layers[i], layers[i - 1])
-                he_init = he_init * np.sqrt(2.0 / layers[i - 1])
-                self.__weights['W{}'.format(i + 1)] = he_init
+                self.__weights['W{}'.format(i + 1)] = (
+                    np.random.randn(layers[i], layers[i - 1]) *
+                    np.sqrt(2 / layers[i - 1]))
 
             self.__weights['b{}'.format(i + 1)] = np.zeros((layers[i], 1))
 
@@ -62,7 +61,6 @@ class DeepNeuralNetwork:
         """
         self.__cache['A0'] = X
 
-        # Loop #2
         for i in range(self.__L):
             W = self.__weights['W{}'.format(i + 1)]
             b = self.__weights['b{}'.format(i + 1)]
@@ -96,8 +94,8 @@ class DeepNeuralNetwork:
         Calculates one pass of gradient descent on the neural network
         """
         m = Y.shape[1]
+        dz = None
 
-        # Loop #3 - going backwards through layers
         for i in range(self.__L, 0, -1):
             A_curr = cache['A{}'.format(i)]
             A_prev = cache['A{}'.format(i - 1)]
@@ -106,8 +104,7 @@ class DeepNeuralNetwork:
                 dz = A_curr - Y
             else:
                 W_next = self.__weights['W{}'.format(i + 1)]
-                dz_next = dz
-                dz = np.matmul(W_next.T, dz_next) * (A_curr * (1 - A_curr))
+                dz = np.matmul(W_next.T, dz) * (A_curr * (1 - A_curr))
 
             dw = np.matmul(dz, A_prev.T) / m
             db = np.sum(dz, axis=1, keepdims=True) / m
