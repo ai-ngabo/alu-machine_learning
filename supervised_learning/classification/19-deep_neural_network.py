@@ -93,16 +93,16 @@ class DeepNeuralNetwork:
 
         Parameters:
             Y (numpy.ndarray): Correct labels with shape (1, m).
-            A (numpy.ndarray): Activated output of the neuron with shape (1, m).
+            A (numpy.ndarray): Activated output with shape (1, m).
 
         Returns:
             The cost value.
         """
         m = Y.shape[1]
-        
+
         # Logistic regression cross-entropy cost formula:
         # loss = -(Y * log(A) + (1 - Y) * log(1.0000001 - A))
         loss = Y * np.log(A) + (1.0 - Y) * np.log(1.0000001 - A)
         cost = -1.0 / m * np.sum(loss)
-        
+
         return cost
