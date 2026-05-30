@@ -236,4 +236,3 @@ class DeepNeuralNetwork:
 
         with open(filename, "rb") as f:
             return pickle.load(f)
-        

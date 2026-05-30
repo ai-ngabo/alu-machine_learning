@@ -30,4 +30,3 @@ def one_hot_decode(one_hot):
         return labels
     except Exception:
         return None
-    
