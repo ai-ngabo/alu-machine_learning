@@ -119,7 +119,8 @@ class DeepNeuralNetwork:
             prediction (numpy.ndarray): Evaluated labels (1 or 0).
             cost (float): Cost value of the network.
         """
-        A, cost = self.forward_prop(X)
+        A, _ = self.forward_prop(X)
+        cost = self.cost(Y, A)
         prediction = np.where(A >= 0.5, 1, 0)
 
         return prediction, cost
