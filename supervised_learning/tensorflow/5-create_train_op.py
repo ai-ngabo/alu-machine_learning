@@ -18,8 +18,6 @@ def create_train_op(loss, alpha):
     """
     # Create a gradient descent optimizer with the given learning rate
     optimizer = tf.train.GradientDescentOptimizer(alpha)
-    
     # Minimize the loss to create the training operation
     train_op = optimizer.minimize(loss)
-    
     return train_op
