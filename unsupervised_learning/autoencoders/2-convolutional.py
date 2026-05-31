@@ -36,7 +36,7 @@ def autoencoder(input_dims, filters, latent_dims):
             pool_size=(2, 2),
             padding='same'
         )(x)
-    # Latent space
+    # Latent space (no max pooling after this)
     latent = keras.layers.Conv2D(
         latent_dims[2],
         kernel_size=(3, 3),
