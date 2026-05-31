@@ -1,24 +1,26 @@
 #!/usr/bin/env python3
-"""Vanilla Autoencoder module."""
+"""Sparse Autoencoder module."""
 
 import tensorflow.keras as keras
 
 
-def autoencoder(input_dims, hidden_layers, latent_dims):
+def autoencoder(input_dims, hidden_layers, latent_dims, lambtha):
     """
-    Creates a vanilla autoencoder.
+    Creates a sparse autoencoder with L1 regularization.
 
     Args:
         input_dims (int): Dimensions of the model input.
         hidden_layers (list): Number of nodes for each hidden layer in the
                               encoder.
         latent_dims (int): Dimensions of the latent space representation.
+        lambtha (float): Regularization parameter for L1 regularization on
+                         the encoded output.
 
     Returns:
         tuple: (encoder, decoder, auto) where:
             - encoder is the encoder model
             - decoder is the decoder model
-            - auto is the full autoencoder model
+            - auto is the sparse autoencoder model
     """
     # Encoder
     encoder_input = keras.layers.Input(shape=(input_dims,))
@@ -26,8 +28,12 @@ def autoencoder(input_dims, hidden_layers, latent_dims):
     # Add hidden layers to encoder
     for units in hidden_layers:
         x = keras.layers.Dense(units, activation='relu')(x)
-    # Latent layer
-    latent = keras.layers.Dense(latent_dims, activation='relu')(x)
+    # Latent layer with L1 regularization
+    latent = keras.layers.Dense(
+        latent_dims,
+        activation='relu',
+        activity_regularizer=keras.regularizers.l1(lambtha)
+    )(x)
     encoder = keras.models.Model(encoder_input, latent, name='encoder')
     # Decoder
     decoder_input = keras.layers.Input(shape=(latent_dims,))
