@@ -9,8 +9,10 @@ def autoencoder(input_dims, filters, latent_dims):
     Creates a convolutional autoencoder.
 
     Args:
-        input_dims (tuple): Dimensions of the model input (height, width, channels).
-        filters (list): Number of filters for each convolutional layer in the encoder.
+        input_dims (tuple): Dimensions of the model input (height, width,
+                            channels).
+        filters (list): Number of filters for each convolutional layer in
+                        the encoder.
         latent_dims (tuple): Dimensions of the latent space representation.
 
     Returns:
@@ -30,7 +32,10 @@ def autoencoder(input_dims, filters, latent_dims):
             padding='same',
             activation='relu'
         )(x)
-        x = keras.layers.MaxPooling2D(pool_size=(2, 2), padding='same')(x)
+        x = keras.layers.MaxPooling2D(
+            pool_size=(2, 2),
+            padding='same'
+        )(x)
     # Latent space
     latent = keras.layers.Conv2D(
         latent_dims[2],
@@ -42,9 +47,9 @@ def autoencoder(input_dims, filters, latent_dims):
     # Decoder
     decoder_input = keras.layers.Input(shape=latent_dims)
     x = decoder_input
-    # Add convolutional layers with upsampling (all except last two)
+    # Add convolutional layers with upsampling for all but last two
     for i, num_filters in enumerate(reversed(filters)):
-        if i < len(filters) - 1:  # All except the last one in reversed list
+        if i < len(filters) - 1:
             x = keras.layers.Conv2D(
                 num_filters,
                 kernel_size=(3, 3),
@@ -54,7 +59,7 @@ def autoencoder(input_dims, filters, latent_dims):
             x = keras.layers.UpSampling2D(size=(2, 2))(x)
     # Second to last convolution with valid padding
     x = keras.layers.Conv2D(
-        filters[0] if filters else 1,
+        filters[0],
         kernel_size=(3, 3),
         padding='valid',
         activation='relu'
