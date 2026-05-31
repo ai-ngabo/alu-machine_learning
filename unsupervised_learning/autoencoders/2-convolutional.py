@@ -24,8 +24,8 @@ def autoencoder(input_dims, filters, latent_dims):
     # Encoder
     encoder_input = keras.layers.Input(shape=input_dims)
     x = encoder_input
-    # Add convolutional layers with max pooling
-    for num_filters in filters:
+    # Add convolutional layers with max pooling for all but last filter
+    for num_filters in filters[:-1]:
         x = keras.layers.Conv2D(
             num_filters,
             kernel_size=(3, 3),
@@ -36,7 +36,18 @@ def autoencoder(input_dims, filters, latent_dims):
             pool_size=(2, 2),
             padding='same'
         )(x)
-    # Latent space (no max pooling after this)
+    # Last convolutional layer (no max pooling after it)
+    x = keras.layers.Conv2D(
+        filters[-1],
+        kernel_size=(3, 3),
+        padding='same',
+        activation='relu'
+    )(x)
+    x = keras.layers.MaxPooling2D(
+        pool_size=(2, 2),
+        padding='same'
+    )(x)
+    # Latent space
     latent = keras.layers.Conv2D(
         latent_dims[2],
         kernel_size=(3, 3),
