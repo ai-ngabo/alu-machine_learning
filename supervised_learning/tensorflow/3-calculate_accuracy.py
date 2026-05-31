@@ -18,14 +18,10 @@ def calculate_accuracy(y, y_pred):
     """
     # Get the index of the predicted class (highest value in y_pred)
     predicted_classes = tf.argmax(y_pred, axis=1)
-    
     # Get the actual class index from one-hot encoded labels
     actual_classes = tf.argmax(y, axis=1)
-    
     # Compare predictions with actual values
     correct_predictions = tf.equal(predicted_classes, actual_classes)
-    
     # Convert boolean to float and calculate mean (accuracy)
     accuracy = tf.reduce_mean(tf.cast(correct_predictions, tf.float32))
-    
     return accuracy
