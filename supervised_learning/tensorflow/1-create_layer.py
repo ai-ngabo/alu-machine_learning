@@ -18,11 +18,10 @@ def create_layer(prev, n, activation):
         tf.Tensor: The tensor output of the layer.
     """
     init = tf.contrib.layers.variance_scaling_initializer(mode="FAN_AVG")
-    layer = tf.layers.dense(
-        inputs=prev,
+    layer = tf.layers.Dense(
         units=n,
         activation=activation,
         kernel_initializer=init,
         name="layer"
-    )
+    )(prev)
     return layer
