@@ -27,9 +27,9 @@ def autoencoder(input_dims, hidden_layers, latent_dims):
     # Add hidden layers to encoder
     for units in hidden_layers:
         x = keras.layers.Dense(units, activation='relu')(x)
-    # Mean and log variance layers (no activation)
-    mean = keras.layers.Dense(latent_dims, activation=None)(x)
-    log_var = keras.layers.Dense(latent_dims, activation=None)(x)
+    # Mean and log variance layers with linear activation
+    mean = keras.layers.Dense(latent_dims, activation='linear')(x)
+    log_var = keras.layers.Dense(latent_dims, activation='linear')(x)
     # Sampling function
     def sampling(args):
         """Sample from latent space using reparameterization trick."""
