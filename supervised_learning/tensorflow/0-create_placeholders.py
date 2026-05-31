@@ -14,7 +14,7 @@ def create_placeholders(nx, classes):
 
     Returns:
         tuple: A tuple containing (x, y) where:
-            - x (tf.placeholder): Placeholder for input data 
+            - x (tf.placeholder): Placeholder for input data
             - y (tf.placeholder): Placeholder for one-hot labels
     """
     x = tf.placeholder(tf.float32, shape=(None, nx), name='x')
