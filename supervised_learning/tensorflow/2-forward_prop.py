@@ -22,5 +22,10 @@ def forward_prop(x, layer_sizes=[], activations=[]):
     """
     prev = x
     for i in range(len(layer_sizes)):
-        prev = create_layer(prev, layer_sizes[i], activations[i])
+        if activations[i] is not None:
+            prev = create_layer(prev, layer_sizes[i], activations[i])
+        else:
+            # If activation is None, create layer without activation function
+            # (linear activation)
+            prev = create_layer(prev, layer_sizes[i], None)
     return prev
