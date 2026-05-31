@@ -41,13 +41,6 @@ def train(X_train, Y_train, X_valid, Y_valid, layer_sizes, activations,
     accuracy = calculate_accuracy(y, y_pred)
     # Create training operation
     train_op = create_train_op(loss, alpha)
-    # Add to graph's collection
-    tf.add_to_collection('x', x)
-    tf.add_to_collection('y', y)
-    tf.add_to_collection('y_pred', y_pred)
-    tf.add_to_collection('loss', loss)
-    tf.add_to_collection('accuracy', accuracy)
-    tf.add_to_collection('train_op', train_op)
     # Create saver
     saver = tf.train.Saver()
     # Initialize variables
@@ -73,12 +66,12 @@ def train(X_train, Y_train, X_valid, Y_valid, layer_sizes, activations,
                     [loss, accuracy],
                     feed_dict={x: X_valid, y: Y_valid}
                 )
-                # Print results
-                print(f"After {i} iterations:")
-                print(f"\tTraining Cost: {train_cost}")
-                print(f"\tTraining Accuracy: {train_accuracy}")
-                print(f"\tValidation Cost: {valid_cost}")
-                print(f"\tValidation Accuracy: {valid_accuracy}")
+                # Print results with proper formatting (tabs and newlines)
+                print("After {} iterations:".format(i))
+                print("\tTraining Cost: {}".format(train_cost))
+                print("\tTraining Accuracy: {}".format(train_accuracy))
+                print("\tValidation Cost: {}".format(valid_cost))
+                print("\tValidation Accuracy: {}".format(valid_accuracy))
         # Save the model
         save_path = saver.save(sess, save_path)
 
