@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 """Vanilla Autoencoder module."""
 
-import tensorflow as tf
-from tensorflow.keras.layers import Dense, Input
-from tensorflow.keras.models import Model
+import tensorflow.keras as keras
 
 
 def autoencoder(input_dims, hidden_layers, latent_dims):
@@ -23,28 +21,28 @@ def autoencoder(input_dims, hidden_layers, latent_dims):
             - auto is the full autoencoder model
     """
     # Encoder
-    encoder_input = Input(shape=(input_dims,))
+    encoder_input = keras.layers.Input(shape=(input_dims,))
     x = encoder_input
     # Add hidden layers to encoder
     for units in hidden_layers:
-        x = Dense(units, activation='relu')(x)
+        x = keras.layers.Dense(units, activation='relu')(x)
     # Latent layer
-    latent = Dense(latent_dims, activation='relu')(x)
-    encoder = Model(encoder_input, latent, name='encoder')
+    latent = keras.layers.Dense(latent_dims, activation='relu')(x)
+    encoder = keras.models.Model(encoder_input, latent, name='encoder')
     # Decoder
-    decoder_input = Input(shape=(latent_dims,))
+    decoder_input = keras.layers.Input(shape=(latent_dims,))
     x = decoder_input
     # Add hidden layers to decoder (reversed)
     for units in reversed(hidden_layers):
-        x = Dense(units, activation='relu')(x) 
+        x = keras.layers.Dense(units, activation='relu')(x)
     # Output layer with sigmoid activation
-    output = Dense(input_dims, activation='sigmoid')(x)
-    decoder = Model(decoder_input, output, name='decoder')  
+    output = keras.layers.Dense(input_dims, activation='sigmoid')(x)
+    decoder = keras.models.Model(decoder_input, output, name='decoder')
     # Full autoencoder
-    auto_input = Input(shape=(input_dims,))
+    auto_input = keras.layers.Input(shape=(input_dims,))
     encoded = encoder(auto_input)
     decoded = decoder(encoded)
-    auto = Model(auto_input, decoded, name='autoencoder')  
+    auto = keras.models.Model(auto_input, decoded, name='autoencoder')
     # Compile the autoencoder
-    auto.compile(optimizer='adam', loss='binary_crossentropy')
+    auto.compile(optimizer='adam', loss='binary_crossentropy')    
     return encoder, decoder, auto
