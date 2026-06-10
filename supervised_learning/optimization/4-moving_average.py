@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Moving average with bias correction"""
 
+
 def moving_average(data, beta):
     """
     Calculates weighted moving average with bias correction
