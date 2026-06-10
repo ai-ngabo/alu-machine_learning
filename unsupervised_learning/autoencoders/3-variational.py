@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """Variational Autoencoder"""
-
 import tensorflow.keras as keras
+from tensorflow.keras import backend as K
 
 
 def autoencoder(input_dims, hidden_layers, latent_dims):
-    """Creates a variational autoencoder"""
+    """creates a variational autoencoder"""
 
-    # Encoder
-    inputs = keras.Input(shape=(input_dims,))
-    x = inputs
+    # ========= Encoder =========
+    encoder_inputs = keras.Input(shape=(input_dims,))
 
+    x = encoder_inputs
     for nodes in hidden_layers:
         x = keras.layers.Dense(nodes, activation='relu')(x)
 
@@ -18,44 +18,53 @@ def autoencoder(input_dims, hidden_layers, latent_dims):
     log_var = keras.layers.Dense(latent_dims)(x)
 
     def sampling(args):
-        """Reparameterization trick"""
-        mu, log_var = args
-        epsilon = keras.backend.random_normal(
-            shape=(keras.backend.shape(mu)[0], latent_dims)
+        """reparameterization trick"""
+        mu_, log_var_ = args
+        epsilon = K.random_normal(
+            shape=(K.shape(mu_)[0], latent_dims)
         )
-        return mu + keras.backend.exp(log_var / 2) * epsilon
+        return mu_ + K.exp(log_var_ / 2) * epsilon
 
-    z = keras.layers.Lambda(sampling)([mu, log_var])
+    z = keras.layers.Lambda(
+        sampling,
+        output_shape=(latent_dims,)
+    )([mu, log_var])
 
-    encoder = keras.Model(inputs, [z, mu, log_var])
+    encoder = keras.Model(
+        encoder_inputs,
+        [z, mu, log_var]
+    )
 
-    # Decoder
-    latent_inputs = keras.Input(shape=(latent_dims,))
-    x = latent_inputs
+    # ========= Decoder =========
+    decoder_inputs = keras.Input(shape=(latent_dims,))
 
+    x = decoder_inputs
     for nodes in reversed(hidden_layers):
         x = keras.layers.Dense(nodes, activation='relu')(x)
 
-    outputs = keras.layers.Dense(
+    decoder_outputs = keras.layers.Dense(
         input_dims,
         activation='sigmoid'
     )(x)
 
-    decoder = keras.Model(latent_inputs, outputs)
-
-    # Autoencoder
-    auto_outputs = decoder(z)
-    auto = keras.Model(inputs, auto_outputs)
-
-    # KL divergence loss
-    kl_loss = -0.5 * keras.backend.sum(
-        1 + log_var
-        - keras.backend.square(mu)
-        - keras.backend.exp(log_var),
-        axis=-1
+    decoder = keras.Model(
+        decoder_inputs,
+        decoder_outputs
     )
 
-    auto.add_loss(keras.backend.mean(kl_loss))
+    # ========= Autoencoder =========
+    auto_inputs = encoder_inputs
+    z, mu, log_var = encoder(auto_inputs)
+    auto_outputs = decoder(z)
+
+    auto = keras.Model(auto_inputs, auto_outputs)
+
+    # KL divergence loss
+    kl_loss = -0.5 * K.sum(
+        1 + log_var - K.square(mu) - K.exp(log_var),
+        axis=-1
+    )
+    auto.add_loss(K.mean(kl_loss))
 
     auto.compile(
         optimizer='adam',
