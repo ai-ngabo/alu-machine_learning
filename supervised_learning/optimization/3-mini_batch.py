@@ -9,7 +9,7 @@ def train_mini_batch(X_train, Y_train, X_valid, Y_valid,
                      batch_size=32, epochs=5,
                      load_path="/tmp/model.ckpt",
                      save_path="/tmp/model.ckpt"):
-    """Trains model using mini-batch gradient descent"""
+    """Trains a model using mini-batch gradient descent"""
 
     with tf.Session() as sess:
         saver = tf.train.import_meta_graph(load_path + ".meta")
@@ -29,11 +29,14 @@ def train_mini_batch(X_train, Y_train, X_valid, Y_valid,
 
             X_s, Y_s = shuffle_data(X_train, Y_train)
 
-            train_cost = sess.run(loss, feed_dict={x: X_train, y: Y_train})
-            train_acc = sess.run(accuracy, feed_dict={x: X_train, y: Y_train})
+            feed_all_train = {x: X_train, y: Y_train}
+            feed_all_valid = {x: X_valid, y: Y_valid}
 
-            valid_cost = sess.run(loss, feed_dict={x: X_valid, y: Y_valid})
-            valid_acc = sess.run(accuracy, feed_dict={x: X_valid, y: Y_valid})
+            train_cost = sess.run(loss, feed_dict=feed_all_train)
+            train_acc = sess.run(accuracy, feed_dict=feed_all_train)
+
+            valid_cost = sess.run(loss, feed_dict=feed_all_valid)
+            valid_acc = sess.run(accuracy, feed_dict=feed_all_valid)
 
             print("After {} epochs:".format(epoch))
             print("\tTraining Cost: {}".format(train_cost))
@@ -52,11 +55,13 @@ def train_mini_batch(X_train, Y_train, X_valid, Y_valid,
                 X_batch = X_s[i:i + batch_size]
                 Y_batch = Y_s[i:i + batch_size]
 
-                sess.run(train_op, feed_dict={x: X_batch, y: Y_batch})
+                feed_batch = {x: X_batch, y: Y_batch}
+
+                sess.run(train_op, feed_dict=feed_batch)
 
                 if step % 100 == 0:
-                    step_cost = sess.run(loss, feed_dict={x: X_batch, y: Y_batch})
-                    step_acc = sess.run(accuracy, feed_dict={x: X_batch, y: Y_batch})
+                    step_cost = sess.run(loss, feed_dict=feed_batch)
+                    step_acc = sess.run(accuracy, feed_dict=feed_batch)
 
                     print("\tStep {}:".format(step))
                     print("\t\tCost: {}".format(step_cost))
