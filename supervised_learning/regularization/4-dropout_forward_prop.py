@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Module to conduct forward propagation using Dropout regularization."""
 import numpy as np
 
