@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Module containing the BayesianOptimization class."""
 import numpy as np
 
