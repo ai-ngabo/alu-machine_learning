@@ -1,9 +1,16 @@
 #!/usr/bin/env python3
-"""Full neural network training pipeline with TF1"""
+"""Full training model with Adam, BN, LR decay, mini-batch"""
 
+import numpy as np
 import tensorflow as tf
-shuffle_data = __import__('2-shuffle_data').shuffle_data
-create_batch_norm_layer = __import__('14-batch_norm').create_batch_norm_layer
+
+
+def batch_norm(Z, gamma, beta, epsilon):
+    mean, var = tf.nn.moments(Z, axes=[0])
+    Z_norm = tf.nn.batch_normalization(
+        Z, mean, var, beta, gamma, epsilon
+    )
+    return Z_norm
 
 
 def model(Data_train, Data_valid, layers, activations,
@@ -17,9 +24,9 @@ def model(Data_train, Data_valid, layers, activations,
     x = tf.placeholder(tf.float32, shape=[None, X_train.shape[1]])
     y = tf.placeholder(tf.float32, shape=[None, Y_train.shape[1]])
 
-    # learning rate with stepwise inverse time decay
     global_step = tf.Variable(0, trainable=False)
 
+    # learning rate decay (stepwise inverse time)
     alpha_decay = tf.train.inverse_time_decay(
         alpha,
         global_step,
@@ -28,26 +35,35 @@ def model(Data_train, Data_valid, layers, activations,
         staircase=True
     )
 
-    # network construction
+    # Xavier init equivalent
+    init = tf.contrib.layers.variance_scaling_initializer()
+
     prev = x
 
+    # build network
     for i in range(len(layers)):
-        if i == len(layers) - 1:
-            prev = tf.layers.Dense(
-                units=layers[i],
-                activation=None,
-                kernel_initializer=tf.contrib.layers.variance_scaling_initializer()
-            )(prev)
+        W = tf.Variable(
+            init([prev.shape[-1], layers[i]]),
+            trainable=True
+        )
+        b = tf.Variable(tf.zeros([layers[i]]), trainable=True)
+
+        Z = tf.matmul(prev, W) + b
+
+        if i < len(layers) - 1:
+            gamma = tf.Variable(tf.ones([layers[i]]), trainable=True)
+            beta = tf.Variable(tf.zeros([layers[i]]), trainable=True)
+            Z = batch_norm(Z, gamma, beta, epsilon)
+            prev = activations[i](Z)
         else:
-            prev = create_batch_norm_layer(prev, layers[i], activations[i])
+            prev = Z
 
     logits = prev
 
-    # loss + accuracy
     loss = tf.losses.softmax_cross_entropy(y, logits)
-    y_pred = tf.nn.softmax(logits)
 
-    correct = tf.equal(tf.argmax(y_pred, 1), tf.argmax(y, 1))
+    pred = tf.nn.softmax(logits)
+    correct = tf.equal(tf.argmax(pred, 1), tf.argmax(y, 1))
     accuracy = tf.reduce_mean(tf.cast(correct, tf.float32))
 
     optimizer = tf.train.AdamOptimizer(
@@ -59,21 +75,21 @@ def model(Data_train, Data_valid, layers, activations,
 
     train_op = optimizer.minimize(loss, global_step=global_step)
 
-    init = tf.global_variables_initializer()
     saver = tf.train.Saver()
 
     m = X_train.shape[0]
 
     with tf.Session() as sess:
-        sess.run(init)
+        sess.run(tf.global_variables_initializer())
 
         for epoch in range(epochs + 1):
 
-            X_shuffled, Y_shuffled = shuffle_data(X_train, Y_train)
+            X_s, Y_s = X_train.copy(), Y_train.copy()
+            perm = np.random.permutation(m)
+            X_s, Y_s = X_s[perm], Y_s[perm]
 
             train_cost = sess.run(loss, feed_dict={x: X_train, y: Y_train})
             train_acc = sess.run(accuracy, feed_dict={x: X_train, y: Y_train})
-
             valid_cost = sess.run(loss, feed_dict={x: X_valid, y: Y_valid})
             valid_acc = sess.run(accuracy, feed_dict={x: X_valid, y: Y_valid})
 
@@ -91,20 +107,18 @@ def model(Data_train, Data_valid, layers, activations,
             for i in range(0, m, batch_size):
                 step += 1
 
-                X_batch = X_shuffled[i:i + batch_size]
-                Y_batch = Y_shuffled[i:i + batch_size]
+                X_batch = X_s[i:i + batch_size]
+                Y_batch = Y_s[i:i + batch_size]
 
-                feed = {x: X_batch, y: Y_batch}
-
-                sess.run(train_op, feed_dict=feed)
+                sess.run(train_op, feed_dict={x: X_batch, y: Y_batch})
 
                 if step % 100 == 0:
-                    step_cost = sess.run(loss, feed_dict=feed)
-                    step_acc = sess.run(accuracy, feed_dict=feed)
+                    c = sess.run(loss, feed_dict={x: X_batch, y: Y_batch})
+                    a = sess.run(accuracy, feed_dict={x: X_batch, y: Y_batch})
 
                     print("\tStep {}:".format(step))
-                    print("\t\tCost: {}".format(step_cost))
-                    print("\t\tAccuracy: {}".format(step_acc))
+                    print("\t\tCost: {}".format(c))
+                    print("\t\tAccuracy: {}".format(a))
 
         save_path = saver.save(sess, save_path)
 
