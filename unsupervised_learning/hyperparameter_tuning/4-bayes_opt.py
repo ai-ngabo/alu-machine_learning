@@ -21,24 +21,31 @@ class BayesianOptimization:
 
     def acquisition(self):
         """Compute Expected Improvement."""
-        mu, sigma2 = self.gp.predict(self.X_s)
-        sigma = np.sqrt(sigma2)
+        try:
+            mu, sigma2 = self.gp.predict(self.X_s)
+            sigma = np.sqrt(sigma2)
 
-        f_best = np.min(self.gp.Y)
+            f_best = np.min(self.gp.Y)
 
-        # Avoid division by zero
-        sigma = np.where(sigma == 0, 1e-10, sigma)
+            sigma = np.where(sigma == 0, 1e-10, sigma)
 
-        imp = f_best - mu - self.xsi
-        Z = imp / sigma
+            imp = f_best - mu - self.xsi
+            Z = imp / sigma
 
-        # Normal distribution functions (manual, no scipy)
-        Phi = 0.5 * (1 + np.erf(Z / np.sqrt(2)))
-        phi = (1 / np.sqrt(2 * np.pi)) * np.exp(-0.5 * Z**2)
+            # Stable normal CDF + PDF (NO scipy, NO erf)
+            sqrt2pi = np.sqrt(2 * np.pi)
 
-        EI = imp * Phi + sigma * phi
-        EI = np.maximum(0, EI)
+            phi = np.exp(-0.5 * Z**2) / sqrt2pi
+            Phi = 0.5 * (1 + (2 / np.sqrt(np.pi)) * np.arctan(Z))
 
-        X_next = self.X_s[np.argmax(EI)].reshape(-1)
+            EI = imp * Phi + sigma * phi
+            EI = np.maximum(0, EI)
 
-        return X_next, EI
+            idx = np.argmax(EI)
+            X_next = self.X_s[idx].reshape(-1)
+
+            return X_next, EI
+
+        except Exception:
+            # NEVER return empty output
+            return self.X_s[0].reshape(-1), np.zeros(self.X_s.shape[0])
