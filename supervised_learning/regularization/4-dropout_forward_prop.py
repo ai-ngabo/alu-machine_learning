@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+"""Module to conduct forward propagation using Dropout regularization."""
 import numpy as np
 
 
@@ -30,7 +30,8 @@ def dropout_forward_prop(X, weights, L, keep_prob):
         if i == L:
             # Softmax activation for the last layer
             exp_Z = np.exp(Z - np.max(Z, axis=0, keepdims=True))
-            cache['A{}'.format(i)] = exp_Z / np.sum(exp_Z, axis=0, keepdims=True)
+            softmax = exp_Z / np.sum(exp_Z, axis=0, keepdims=True)
+            cache['A{}'.format(i)] = softmax
         else:
             # Tanh activation for hidden layers
             A = np.tanh(Z)
