@@ -18,5 +18,4 @@ def l2_reg_cost(cost):
     """
     # Sum individual graph keys sequentially to preserve baseline cost rank
     reg_losses = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
-    
     return cost + tf.add_n(reg_losses)
