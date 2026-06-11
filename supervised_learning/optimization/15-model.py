@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Neural network model with:
+Neural network with:
 - Mini-batch gradient descent
-- Adam optimization
-- Learning rate decay
+- Adam optimizer
+- Learning rate decay (inverse time, stepwise per epoch)
 - Batch normalization
 - TensorFlow implementation (no external helpers)
 """
@@ -18,7 +18,7 @@ def model(Data_train, Data_valid, layers, activations,
           batch_size=32, epochs=5,
           save_path='/tmp/model.ckpt'):
     """
-    Builds, trains and saves a neural network model using TensorFlow.
+    Builds, trains and saves a neural network using TensorFlow.
     """
 
     X_train, Y_train = Data_train
@@ -27,11 +27,14 @@ def model(Data_train, Data_valid, layers, activations,
     nx = X_train.shape[1]
     classes = Y_train.shape[1]
 
-    x = tf.placeholder(tf.float32, shape=[None, nx], name='x')
-    y = tf.placeholder(tf.float32, shape=[None, classes], name='y')
+    x = tf.placeholder(tf.float32, shape=[None, nx])
+    y = tf.placeholder(tf.float32, shape=[None, classes])
 
     A = x
 
+    # =========================
+    # FORWARD PROP
+    # =========================
     for i in range(len(layers)):
         init = tf.contrib.layers.variance_scaling_initializer(mode="FAN_AVG")
 
@@ -40,30 +43,47 @@ def model(Data_train, Data_valid, layers, activations,
             kernel_initializer=init
         )(A)
 
-        if i != len(layers) - 1:
+        # Last layer = logits ONLY (NO activation)
+        if i == len(layers) - 1:
+            logits = Z
+        else:
             gamma = tf.Variable(tf.ones([1, layers[i]]), trainable=True)
             beta = tf.Variable(tf.zeros([1, layers[i]]), trainable=True)
 
-            mean, variance = tf.nn.moments(Z, axes=[0])
-            Z_norm = (Z - mean) / tf.sqrt(variance + epsilon)
+            mean, var = tf.nn.moments(Z, axes=[0])
+            Z_norm = (Z - mean) / tf.sqrt(var + epsilon)
             Z_tilde = gamma * Z_norm + beta
 
             A = activations[i](Z_tilde)
-        else:
-            A = Z
 
-    tf.add_to_collection('y_pred', A)
-
-    loss = tf.losses.softmax_cross_entropy(y, A)
-    tf.add_to_collection('loss', loss)
-
-    correct = tf.equal(tf.argmax(A, 1), tf.argmax(y, 1))
-    accuracy = tf.reduce_mean(tf.cast(correct, tf.float32))
-
-    tf.add_to_collection('accuracy', accuracy)
+    # =========================
+    # OUTPUT COLLECTIONS
+    # =========================
     tf.add_to_collection('x', x)
     tf.add_to_collection('y', y)
+    tf.add_to_collection('y_pred', logits)
 
+    # =========================
+    # LOSS (IMPORTANT FIX)
+    # =========================
+    loss = tf.nn.softmax_cross_entropy_with_logits_v2(
+        labels=y,
+        logits=logits
+    )
+    loss = tf.reduce_mean(loss)
+
+    tf.add_to_collection('loss', loss)
+
+    # accuracy
+    pred = tf.argmax(logits, axis=1)
+    true = tf.argmax(y, axis=1)
+    accuracy = tf.reduce_mean(tf.cast(tf.equal(pred, true), tf.float32))
+
+    tf.add_to_collection('accuracy', accuracy)
+
+    # =========================
+    # OPTIMIZER (ADAM + DECAY)
+    # =========================
     global_step = tf.Variable(0, trainable=False)
 
     lr = tf.train.inverse_time_decay(
@@ -85,19 +105,19 @@ def model(Data_train, Data_valid, layers, activations,
 
     init = tf.global_variables_initializer()
 
+    # =========================
+    # TRAINING LOOP
+    # =========================
     with tf.Session() as sess:
         sess.run(init)
 
-        def run_eval(X, Y):
-            return sess.run(
-                (loss, accuracy),
-                feed_dict={x: X, y: Y}
-            )
+        def evaluate(X, Y):
+            return sess.run((loss, accuracy), feed_dict={x: X, y: Y})
 
         for epoch in range(epochs + 1):
 
-            train_cost, train_acc = run_eval(X_train, Y_train)
-            valid_cost, valid_acc = run_eval(X_valid, Y_valid)
+            train_cost, train_acc = evaluate(X_train, Y_train)
+            valid_cost, valid_acc = evaluate(X_valid, Y_valid)
 
             print("After {} epochs:".format(epoch))
             print("\tTraining Cost: {}".format(train_cost))
@@ -108,25 +128,26 @@ def model(Data_train, Data_valid, layers, activations,
             if epoch == epochs:
                 break
 
-            X_shuff = np.random.permutation(X_train.shape[0])
-            X_train_s = X_train[X_shuff]
-            Y_train_s = Y_train[X_shuff]
+            # shuffle
+            perm = np.random.permutation(X_train.shape[0])
+            X_shuff = X_train[perm]
+            Y_shuff = Y_train[perm]
 
             step = 0
 
             for i in range(0, X_train.shape[0], batch_size):
                 step += 1
 
-                X_batch = X_train_s[i:i + batch_size]
-                Y_batch = Y_train_s[i:i + batch_size]
+                X_batch = X_shuff[i:i + batch_size]
+                Y_batch = Y_shuff[i:i + batch_size]
 
                 sess.run(train_op, feed_dict={x: X_batch, y: Y_batch})
 
                 if step % 100 == 0:
-                    c, a = run_eval(X_batch, Y_batch)
+                    c, a = evaluate(X_batch, Y_batch)
                     print("\tStep {}:".format(step))
                     print("\t\tCost: {}".format(c))
-                    print("\t\tAccuracy {}".format(a))
+                    print("\t\tAccuracy: {}".format(a))
 
         saver = tf.train.Saver()
         saver.save(sess, save_path)
