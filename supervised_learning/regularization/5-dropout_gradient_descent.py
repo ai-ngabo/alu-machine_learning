@@ -46,4 +46,4 @@ def dropout_gradient_descent(Y, weights, cache, alpha, keep_prob, L):
             dZ = dZ / keep_prob
 
             A = cache["A{}".format(layer - 1)]
-            dZ = dZ * (1 - A ** 2) 
+            dZ = dZ * (1 - A ** 2)
