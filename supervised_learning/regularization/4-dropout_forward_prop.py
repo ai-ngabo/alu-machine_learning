@@ -1,44 +1,47 @@
-#!/usr/bin/env python3
-"""Forward Propagation with Dropout"""
-
 import numpy as np
 
 
 def dropout_forward_prop(X, weights, L, keep_prob):
     """
-    Conducts forward propagation using Dropout.
+    Conducts forward propagation using Dropout regularization.
 
-    Args:
-        X: input data of shape (nx, m)
-        weights: dictionary of weights and biases
-        L: number of layers
-        keep_prob: probability of keeping a node active
+    Parameters:
+    - X: numpy.ndarray of shape (nx, m) containing the input data
+    - weights: dictionary of the weights and biases of the neural network
+    - L: number of layers in the network
+    - keep_prob: probability that a node will be kept
 
     Returns:
-        Dictionary containing activations and dropout masks
+    - cache: dictionary containing the outputs of each layer and the
+             dropout mask used on each layer
     """
-    cache = {"A0": X}
+    cache = {}
+    cache['A0'] = X
 
-    for layer in range(1, L + 1):
-        W = weights["W{}".format(layer)]
-        b = weights["b{}".format(layer)]
-        A_prev = cache["A{}".format(layer - 1)]
+    for i in range(1, L + 1):
+        W = weights[f'W{i}']
+        b = weights[f'b{i}']
+        A_prev = cache[f'A{i-1}']
 
-        Z = np.matmul(W, A_prev) + b
+        # Compute linear step
+        Z = np.dot(W, A_prev) + b
 
-        if layer == L:
-            exp_Z = np.exp(Z)
-            cache["A{}".format(layer)] = (
-                exp_Z / np.sum(exp_Z, axis=0, keepdims=True)
-            )
+        if i == L:
+            # Softmax activation for the last layer
+            exp_Z = np.exp(Z - np.max(Z, axis=0, keepdims=True))
+            cache[f'A{i}'] = exp_Z / np.sum(exp_Z, axis=0, keepdims=True)
         else:
+            # Tanh activation for hidden layers
             A = np.tanh(Z)
-
-            D = np.random.rand(*A.shape) < keep_prob
-            A = A * D
-            A = A / keep_prob
-
-            cache["A{}".format(layer)] = A
-            cache["D{}".format(layer)] = D
+            
+            # Generate dropout mask using a uniform distribution
+            D = np.random.rand(A.shape[0], A.shape[1])
+            D = (D < keep_prob).astype(int)
+            
+            # Inverted dropout scaling
+            A = (A * D) / keep_prob
+            
+            cache[f'D{i}'] = D
+            cache[f'A{i}'] = A
 
     return cache
