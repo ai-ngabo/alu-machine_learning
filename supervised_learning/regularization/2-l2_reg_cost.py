@@ -16,8 +16,7 @@ def l2_reg_cost(cost):
         tensor containing the cost of the network
         accounting for L2 regularization
     """
-    # Retrieve the global scalar regularization loss
-    reg_losses = tf.losses.get_regularization_loss()
-
-    # Explicitly add the scalar to the vector to return a matching array shape
-    return cost + reg_losses
+    # Sum individual graph keys sequentially to preserve baseline cost rank
+    reg_losses = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
+    
+    return cost + tf.add_n(reg_losses)
