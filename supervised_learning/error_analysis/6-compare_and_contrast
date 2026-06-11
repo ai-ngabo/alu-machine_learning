@@ -1,3 +1,1 @@
-#!/usr/bin/env bash
-# Echoes the correct choice into the specified answer file
-echo -n "A" > 6-compare_and_contrast
+A
