@@ -21,7 +21,7 @@ def availableShips(passengerCount):
     Returns:
         list: Names of starships meeting the requirement.
     """
-    url = "https://swapi.dev/api/starships/"
+    url = "https://swapi.dev/api/"
     ships = []
 
     while url:
