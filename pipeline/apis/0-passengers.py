@@ -1,29 +1,20 @@
 #!/usr/bin/env python3
-"""Module to filter SWAPI starships by passenger count."""
 import requests
 
-
 def availableShips(passengerCount):
-    """Return list of ships matching or exceeding passengerCount."""
-    url = "https://alx-tools.com"
-    matching_ships = []
+    url = "https://swapi.dev/api/starships/"
+    ships = []
 
-    while url:
-        try:
-            # Set a clear timeout to avoid connection hangs
-            res = requests.get(url, timeout=10).json()
-        except Exception:
-            break
+    while url:  # loop through all pages
+        response = requests.get(url)
+        data = response.json()
 
-        for ship in res.get('results', []):
-            p_str = ship.get('passengers', '')
-            p_str = p_str.replace(',', '')
+        for ship in data.get("results", []):
+            passengers = ship.get("passengers", "0").replace(",", "")
+            if passengers.isdigit() and int(passengers) >= passengerCount:
+                ships.append(ship["name"])
 
-            # Enforce strict parsing constraints
-            if p_str.isdigit() and int(p_str) >= passengerCount:
-                matching_ships.append(ship['name'])
+        url = data.get("next")  # move to next page if available
 
-        url = res.get('next')
-
-    return matching_ships
+    return ships
 
