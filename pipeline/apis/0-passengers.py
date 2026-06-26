@@ -10,7 +10,8 @@ def availableShips(passengerCount):
 
     while url:
         try:
-            res = requests.get(url).json()
+            # Set a clear timeout to avoid connection hangs
+            res = requests.get(url, timeout=10).json()
         except Exception:
             break
 
@@ -18,6 +19,7 @@ def availableShips(passengerCount):
             p_str = ship.get('passengers', '')
             p_str = p_str.replace(',', '')
 
+            # Enforce strict parsing constraints
             if p_str.isdigit() and int(p_str) >= passengerCount:
                 matching_ships.append(ship['name'])
 
