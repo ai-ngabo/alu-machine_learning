@@ -80,6 +80,7 @@ class NST:
         self.beta = beta
 
         self.load_model()
+        self.generate_features()
 
     @staticmethod
     def scale_image(image):
@@ -153,3 +154,103 @@ class NST:
 
         model = tf.keras.models.Model(vgg.input, outputs)
         self.model = model
+
+    @staticmethod
+    def gram_matrix(input_layer):
+        '''
+            Update the class NST to be able to calculate gram matrices:
+
+            parameters:
+                input_layer [numpy.ndarray of shape (h, w, c)]:
+                    containing the layer output for which the
+                    gram matrix is calculated
+
+            returns:
+                the gram matrix as a numpy.ndarray of shape
+                (c, c)
+        '''
+        if not (isinstance(input_layer, tf.Tensor) or
+                isinstance(input_layer, tf.Variable)) or len(
+                    input_layer.shape
+                ) != 4:
+            raise TypeError("input_layer must be a tensor of rank 4")
+
+        _, h, w, c = input_layer.shape
+        product = int(h * w)
+        features = tf.reshape(input_layer, (product, c))
+        gram = tf.matmul(features, features, transpose_a=True)
+        gram = tf.expand_dims(gram, axis=0)
+        gram /= tf.cast(product, tf.float32)
+        return (gram)
+
+    def generate_features(self):
+        '''
+            extracts the features used to calculate neural style cost
+
+            returns:
+                the style features and the content features
+        '''
+        vgg19_model = tf.keras.applications.vgg19
+
+        preprocess_style = vgg19_model.preprocess_input(
+            self.style_image * 255)
+        preprocess_content = vgg19_model.preprocess_input(
+            self.content_image * 255)
+
+        style_features = self.model(preprocess_style)[:-1]
+        content_feature = self.model(preprocess_content)[-1]
+
+        gram_style_features = []
+        for feature in style_features:
+            gram_style_features.append(self.gram_matrix(feature))
+
+        self.gram_style_features = gram_style_features
+        self.content_feature = content_feature
+
+    def layer_style_cost(self, style_output, gram_target):
+        '''
+            Calculates the style cost for a single layer
+        '''
+        if not (isinstance(style_output, tf.Tensor) or
+                isinstance(style_output, tf.Variable)) or len(
+                    style_output.shape) != 4:
+            raise TypeError("style_output must be a tensor of rank 4")
+
+        one, h, w, c = style_output.shape
+        if not isinstance(gram_target, (tf.Tensor, tf.Variable)) or \
+           len(gram_target.shape) is not 3 or gram_target.shape != (1, c, c):
+            raise TypeError(
+                "gram_target must be a tensor of shape [1, {}, {}]".format(
+                    c, c))
+        gram_style = self.gram_matrix(style_output)
+        diff = tf.reduce_mean(tf.square(gram_style - gram_target))
+        return diff
+
+    def style_cost(self, style_outputs):
+        '''
+            Calculates the style cost for generated image
+
+            parameters:
+                style_outputs: a list containing the outputs of
+                the style layers
+
+            returns:
+                the style cost
+        '''
+        length = len(self.style_layers)
+        if not isinstance(style_outputs, list) or len(style_outputs) != length:
+            raise TypeError(
+                "style_outputs must be a list with a length of {}".format(
+                    length
+                )
+            )
+
+        weight = 1 / length
+        style_cost = 0.0
+
+        for i in range(length):
+            style_cost += weight * self.layer_style_cost(
+                style_outputs[i], self.gram_style_features[i]
+            )
+
+        return style_cost
