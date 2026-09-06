@@ -13,13 +13,13 @@ class NST:
     Class for Neural Style Transfer tasks.
     """
 
-    # Public class attributes
     style_layers = ['block1_conv1', 'block2_conv1',
                     'block3_conv1', 'block4_conv1',
                     'block5_conv1']
     content_layer = 'block5_conv2'
 
-    def __init__(self, style_image, content_image, alpha=1e4, beta=1):
+    def __init__(self, style_image, content_image,
+                 alpha=1e4, beta=1):
         """
         Initialize NST instance.
 
@@ -33,11 +33,17 @@ class NST:
             TypeError: If inputs are invalid.
         """
         if (not isinstance(style_image, np.ndarray) or
-                style_image.ndim != 3 or style_image.shape[2] != 3):
-            raise TypeError("style_image must be a numpy.ndarray with shape (h, w, 3)")
+                style_image.ndim != 3 or
+                style_image.shape[2] != 3):
+            raise TypeError(
+                "style_image must be a numpy.ndarray with shape (h, w, 3)"
+            )
         if (not isinstance(content_image, np.ndarray) or
-                content_image.ndim != 3 or content_image.shape[2] != 3):
-            raise TypeError("content_image must be a numpy.ndarray with shape (h, w, 3)")
+                content_image.ndim != 3 or
+                content_image.shape[2] != 3):
+            raise TypeError(
+                "content_image must be a numpy.ndarray with shape (h, w, 3)"
+            )
         if not isinstance(alpha, (int, float)) or alpha < 0:
             raise TypeError("alpha must be a non-negative number")
         if not isinstance(beta, (int, float)) or beta < 0:
@@ -62,18 +68,25 @@ class NST:
             tf.Tensor: Scaled image of shape (1, h_new, w_new, 3).
         """
         if (not isinstance(image, np.ndarray) or
-                image.ndim != 3 or image.shape[2] != 3):
-            raise TypeError("image must be a numpy.ndarray with shape (h, w, 3)")
+                image.ndim != 3 or
+                image.shape[2] != 3):
+            raise TypeError(
+                "image must be a numpy.ndarray with shape (h, w, 3)"
+            )
 
         image = tf.convert_to_tensor(image, dtype=tf.float32)
         image = tf.expand_dims(image, axis=0)
 
         h, w = image.shape[1], image.shape[2]
-        scale = 512 / max(h, w)
-        new_h, new_w = int(h * scale), int(w * scale)
+        if h > w:
+            new_h, new_w = 512, int((w * 512) / h)
+        else:
+            new_h, new_w = int((h * 512) / w), 512
 
-        image = tf.image.resize(image, (new_h, new_w),
-                                method=tf.image.ResizeMethod.BICUBIC)
+        image = tf.image.resize(
+            image, (new_h, new_w),
+            method=tf.image.ResizeMethod.BICUBIC
+        )
         image = tf.clip_by_value(image / 255.0, 0.0, 1.0)
         return image
 
@@ -91,9 +104,13 @@ class NST:
         if not isinstance(input_tensor, (tf.Tensor, tf.Variable)):
             raise TypeError("input_tensor must be a tensor")
 
-        result = tf.linalg.einsum('bijc,bijd->bcd', input_tensor, input_tensor)
+        result = tf.linalg.einsum(
+            'bijc,bijd->bcd', input_tensor, input_tensor
+        )
         input_shape = tf.shape(input_tensor)
-        num_locations = tf.cast(input_shape[1] * input_shape[2], tf.float32)
+        num_locations = tf.cast(
+            input_shape[1] * input_shape[2], tf.float32
+        )
         return result / num_locations
 
     def layer_style_cost(self, style_output, gram_target):
@@ -131,4 +148,6 @@ class NST:
         if not isinstance(generated_output, (tf.Tensor, tf.Variable)):
             raise TypeError("generated_output must be a tensor")
 
-        return tf.reduce_mean(tf.square(content_output - generated_output))
+        return tf.reduce_mean(
+            tf.square(content_output - generated_output)
+        )
