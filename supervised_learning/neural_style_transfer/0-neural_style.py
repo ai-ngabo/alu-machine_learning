@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+"""Neural style transfer module."""
 
 import numpy as np
 import tensorflow as tf
@@ -48,7 +49,7 @@ class NST:
 
     @staticmethod
     def scale_image(image):
-        """Scale an image so its largest side is 512 pixels."""
+        """Rescale an image so its largest side is 512 pixels."""
 
         if not isinstance(image, np.ndarray) \
                 or len(image.shape) != 3 \
