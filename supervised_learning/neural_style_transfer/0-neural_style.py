@@ -40,7 +40,7 @@ class NST:
         if not isinstance(beta, (int, float)) or beta < 0:
             raise TypeError("beta must be a non-negative number")
 
-        tf.compat.v1.enable_eager_execution()
+        tf.config.run_functions_eagerly(True)
 
         self.style_image = self.scale_image(style_image)
         self.content_image = self.scale_image(content_image)
@@ -64,8 +64,8 @@ class NST:
             new_height = 512
             new_width = int(width * 512 / height)
         else:
-            new_width = 512
             new_height = int(height * 512 / width)
+            new_width = 512
 
         image = tf.convert_to_tensor(image, dtype=tf.float32)
         image = tf.expand_dims(image, axis=0)
@@ -77,5 +77,7 @@ class NST:
         )
 
         image = image / 255.0
+
+        image = tf.clip_by_value(image, 0, 1)
 
         return image
