@@ -143,12 +143,12 @@ class NST:
 
         Saves the model in the instance attribute model.
         """
-        vgg19 = tf.keras.applications.VGG19(
+        VGG19_model = tf.keras.applications.VGG19(
             include_top=False,
             weights='imagenet'
         )
 
-        vgg19.save("VGG19_base_model")
+        VGG19_model.save("VGG19_base_model")
 
         custom_objects = {
             'MaxPooling2D': tf.keras.layers.AveragePooling2D
@@ -160,20 +160,18 @@ class NST:
         )
 
         style_outputs = []
-
-        for layer_name in self.style_layers:
-            style_outputs.append(
-                vgg.get_layer(layer_name).output
-            )
-
-        content_output = vgg.get_layer(
-            self.content_layer
-        ).output
-
-        outputs = style_outputs + [content_output]
+        content_output = None
 
         for layer in vgg.layers:
+            if layer.name in self.style_layers:
+                style_outputs.append(layer.output)
+
+            if layer.name == self.content_layer:
+                content_output = layer.output
+
             layer.trainable = False
+
+        outputs = style_outputs + [content_output]
 
         self.model = tf.keras.models.Model(
             vgg.input,
@@ -283,19 +281,18 @@ class NST:
 
     def style_cost(self, style_outputs):
         """
-        Calculates the style cost for generated image.
+        Calculates the style cost for generated image
 
         parameters:
-            style_outputs: a list of tf.Tensor style outputs for
-                the generated image
+            style_outputs: a list containing the outputs of
+            the style layers
 
-        Returns:
+        returns:
             the style cost
         """
         length = len(self.style_layers)
 
-        if not isinstance(style_outputs, list) or \
-           len(style_outputs) != length:
+        if not isinstance(style_outputs, list) or len(style_outputs) != length:
             raise TypeError(
                 "style_outputs must be a list with a length of {}".format(
                     length
