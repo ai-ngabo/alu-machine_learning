@@ -8,17 +8,12 @@ import tensorflow as tf
 class NST:
     """Performs tasks for Neural Style Transfer."""
 
-    style_layers = [
-        'block1_conv1',
-        'block2_conv1',
-        'block3_conv1',
-        'block4_conv1',
-        'block5_conv1'
-    ]
+    style_layers = ['block1_conv1', 'block2_conv1', 'block3_conv1',
+                    'block4_conv1', 'block5_conv1']
     content_layer = 'block5_conv2'
 
     def __init__(self, style_image, content_image, alpha=1e4, beta=1):
-        """Class constructor for Neural Style Transfer."""
+        """Initialize the NST class."""
 
         if type(style_image) is not np.ndarray or \
                 len(style_image.shape) != 3:
@@ -99,12 +94,12 @@ class NST:
     def load_model(self):
         """Create the model used to calculate style transfer costs."""
 
-        vgg19 = tf.keras.applications.VGG19(
+        vgg19_model = tf.keras.applications.VGG19(
             include_top=False,
             weights='imagenet'
         )
 
-        vgg19.save("VGG19_base_model")
+        vgg19_model.save("VGG19_base_model")
 
         custom_objects = {
             'MaxPooling2D': tf.keras.layers.AveragePooling2D
@@ -124,7 +119,6 @@ class NST:
 
             if layer.name == self.content_layer:
                 content_output = layer.output
-                break
 
             layer.trainable = False
 
@@ -135,8 +129,6 @@ class NST:
             outputs
         )
 
-        self.model.trainable = False
-
     @staticmethod
     def gram_matrix(input_layer):
         """Calculate the Gram matrix of a layer output."""
@@ -145,30 +137,35 @@ class NST:
                 or len(input_layer.shape) != 4:
             raise TypeError("input_layer must be a tensor of rank 4")
 
-        gram = tf.einsum(
-            'bijc,bijd->bcd',
+        _, h, w, c = input_layer.shape
+
+        features = tf.reshape(
             input_layer,
-            input_layer
+            (h * w, c)
         )
 
-        shape = tf.shape(input_layer)
-        h = tf.cast(shape[1], tf.float32)
-        w = tf.cast(shape[2], tf.float32)
+        gram = tf.matmul(
+            features,
+            features,
+            transpose_a=True
+        )
 
-        gram = gram / (h * w)
+        gram = tf.expand_dims(gram, axis=0)
+
+        gram /= tf.cast(h * w, tf.float32)
 
         return gram
 
     def generate_features(self):
         """Extract features used to calculate neural style cost."""
 
-        vgg19 = tf.keras.applications.vgg19
+        vgg19_model = tf.keras.applications.vgg19
 
-        preprocess_style = vgg19.preprocess_input(
+        preprocess_style = vgg19_model.preprocess_input(
             self.style_image * 255
         )
 
-        preprocess_content = vgg19.preprocess_input(
+        preprocess_content = vgg19_model.preprocess_input(
             self.content_image * 255
         )
 
