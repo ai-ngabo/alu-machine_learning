@@ -1,51 +1,78 @@
 #!/usr/bin/env python3
-"""Defines class NST that performs tasks for neural style transfer."""
+"""
+Defines class NST that performs tasks for neural style transfer
+"""
+
 
 import numpy as np
 import tensorflow as tf
 
 
 class NST:
-    """Performs tasks for Neural Style Transfer."""
+    """
+    Performs tasks for Neural Style Transfer
 
+    public class attributes:
+        style_layers = ['block1_conv1', 'block2_conv1', 'block3_conv1',
+                        'block4_conv1', 'block5_conv1']
+        content_layer = 'block5_conv2'
+
+    instance attributes:
+        style_image: preprocessed style image
+        content_image: preprocessed style image
+        alpha: weight for content cost
+        beta: weight for style cost
+
+    class constructor:
+        def __init__(self, style_image, content_image, alpha=1e4, beta=1)
+
+    static methods:
+        def scale_image(image):
+            rescales an image so the pixel values are between 0 and 1
+                and the largest side is 512 pixels
+    """
     style_layers = ['block1_conv1', 'block2_conv1', 'block3_conv1',
                     'block4_conv1', 'block5_conv1']
     content_layer = 'block5_conv2'
 
     def __init__(self, style_image, content_image, alpha=1e4, beta=1):
-        """Initialize the NST class."""
+        """
+        Class constructor for Neural Style Transfer class
 
+        parameters:
+            style_image [numpy.ndarray with shape (h, w, 3)]:
+                image used as style reference
+            content_image [numpy.ndarray with shape (h, w, 3)]:
+                image used as content reference
+            alpha [float]: weight for content cost
+            beta [float]: weight for style cost
+
+        Raises TypeError if input are in incorrect format
+        Sets TensorFlow to execute eagerly
+        Sets instance attributes
+        """
         if type(style_image) is not np.ndarray or \
-                len(style_image.shape) != 3:
+           len(style_image.shape) != 3:
             raise TypeError(
-                "style_image must be a numpy.ndarray with shape (h, w, 3)"
-            )
-
+                "style_image must be a numpy.ndarray with shape (h, w, 3)")
         if type(content_image) is not np.ndarray or \
-                len(content_image.shape) != 3:
+           len(content_image.shape) != 3:
             raise TypeError(
-                "content_image must be a numpy.ndarray with shape (h, w, 3)"
-            )
+                "content_image must be a numpy.ndarray with shape (h, w, 3)")
 
         style_h, style_w, style_c = style_image.shape
         content_h, content_w, content_c = content_image.shape
 
         if style_h <= 0 or style_w <= 0 or style_c != 3:
             raise TypeError(
-                "style_image must be a numpy.ndarray with shape (h, w, 3)"
-            )
-
+                "style_image must be a numpy.ndarray with shape (h, w, 3)")
         if content_h <= 0 or content_w <= 0 or content_c != 3:
             raise TypeError(
-                "content_image must be a numpy.ndarray with shape (h, w, 3)"
-            )
+                "content_image must be a numpy.ndarray with shape (h, w, 3)")
 
-        if (type(alpha) is not float and type(alpha) is not int) \
-                or alpha < 0:
+        if (type(alpha) is not float and type(alpha) is not int) or alpha < 0:
             raise TypeError("alpha must be a non-negative number")
-
-        if (type(beta) is not float and type(beta) is not int) \
-                or beta < 0:
+        if (type(beta) is not float and type(beta) is not int) or beta < 0:
             raise TypeError("beta must be a non-negative number")
 
         tf.enable_eager_execution()
@@ -60,19 +87,32 @@ class NST:
 
     @staticmethod
     def scale_image(image):
-        """Rescale an image so its largest side is 512 pixels."""
+        """
+        Rescales an image such that its pixels values are between 0 and 1
+            and its largest side is 512 pixels
 
+        parameters:
+            image [numpy.ndarray of shape (h, w, 3)]:
+                 image to be rescaled
+
+        Scaled image should be tf.tensor with shape (1, h_new, w_new, 3)
+            where max(h_new, w_new) is 512 and
+            min(h_new, w_new) is scaled proportionately
+        Image should be resized using bicubic interpolation.
+        Image's pixels should be rescaled from range [0, 255] to [0, 1].
+
+        returns:
+            the scaled image
+        """
         if type(image) is not np.ndarray or len(image.shape) != 3:
             raise TypeError(
-                "image must be a numpy.ndarray with shape (h, w, 3)"
-            )
+                "image must be a numpy.ndarray with shape (h, w, 3)")
 
         h, w, c = image.shape
 
         if h <= 0 or w <= 0 or c != 3:
             raise TypeError(
-                "image must be a numpy.ndarray with shape (h, w, 3)"
-            )
+                "image must be a numpy.ndarray with shape (h, w, 3)")
 
         if h > w:
             h_new = 512
@@ -92,14 +132,23 @@ class NST:
         return rescaled
 
     def load_model(self):
-        """Create the model used to calculate style transfer costs."""
+        """
+        Creates the model used to calculate cost.
 
-        vgg19_model = tf.keras.applications.VGG19(
+        The model uses the VGG19 Keras model as a base.
+        The model's input is the same as the VGG19 input.
+        The model's output is a list containing the outputs
+        of the VGG19 layers listed in style_layers followed by
+        content_layer.
+
+        Saves the model in the instance attribute model.
+        """
+        vgg19 = tf.keras.applications.VGG19(
             include_top=False,
             weights='imagenet'
         )
 
-        vgg19_model.save("VGG19_base_model")
+        vgg19.save("VGG19_base_model")
 
         custom_objects = {
             'MaxPooling2D': tf.keras.layers.AveragePooling2D
@@ -111,18 +160,20 @@ class NST:
         )
 
         style_outputs = []
-        content_output = None
 
-        for layer in vgg.layers:
-            if layer.name in self.style_layers:
-                style_outputs.append(layer.output)
+        for layer_name in self.style_layers:
+            style_outputs.append(
+                vgg.get_layer(layer_name).output
+            )
 
-            if layer.name == self.content_layer:
-                content_output = layer.output
-
-            layer.trainable = False
+        content_output = vgg.get_layer(
+            self.content_layer
+        ).output
 
         outputs = style_outputs + [content_output]
+
+        for layer in vgg.layers:
+            layer.trainable = False
 
         self.model = tf.keras.models.Model(
             vgg.input,
@@ -131,17 +182,28 @@ class NST:
 
     @staticmethod
     def gram_matrix(input_layer):
-        """Calculate the Gram matrix of a layer output."""
+        """
+        Calculates the Gram matrix for a layer output.
 
-        if not isinstance(input_layer, (tf.Tensor, tf.Variable)) \
-                or len(input_layer.shape) != 4:
+        parameters:
+            input_layer [tf.Tensor or tf.Variable]:
+                layer output for which the Gram matrix is calculated
+
+        returns:
+            the Gram matrix
+        """
+        if not (isinstance(input_layer, tf.Tensor) or
+                isinstance(input_layer, tf.Variable)) or \
+                len(input_layer.shape) != 4:
             raise TypeError("input_layer must be a tensor of rank 4")
 
         _, h, w, c = input_layer.shape
 
+        product = int(h * w)
+
         features = tf.reshape(
             input_layer,
-            (h * w, c)
+            (product, c)
         )
 
         gram = tf.matmul(
@@ -152,13 +214,17 @@ class NST:
 
         gram = tf.expand_dims(gram, axis=0)
 
-        gram /= tf.cast(h * w, tf.float32)
+        gram /= tf.cast(product, tf.float32)
 
         return gram
 
     def generate_features(self):
-        """Extract features used to calculate neural style cost."""
+        """
+        Extracts the features used to calculate neural style cost.
 
+        Returns:
+            the style features and content features
+        """
         vgg19_model = tf.keras.applications.vgg19
 
         preprocess_style = vgg19_model.preprocess_input(
@@ -169,8 +235,11 @@ class NST:
             self.content_image * 255
         )
 
-        style_features = self.model(preprocess_style)[:-1]
-        content_feature = self.model(preprocess_content)[-1]
+        outputs_style = self.model(preprocess_style)
+        outputs_content = self.model(preprocess_content)
+
+        style_features = outputs_style[:-1]
+        content_feature = outputs_content[-1]
 
         gram_style_features = []
 
@@ -183,17 +252,21 @@ class NST:
         self.content_feature = content_feature
 
     def layer_style_cost(self, style_output, gram_target):
-        """Calculate the style cost for a single layer."""
-
-        if not isinstance(style_output, (tf.Tensor, tf.Variable)) \
-                or len(style_output.shape) != 4:
-            raise TypeError("style_output must be a tensor of rank 4")
+        """
+        Calculates the style cost for a single layer.
+        """
+        if not (isinstance(style_output, tf.Tensor) or
+                isinstance(style_output, tf.Variable)) or \
+                len(style_output.shape) != 4:
+            raise TypeError(
+                "style_output must be a tensor of rank 4"
+            )
 
         _, h, w, c = style_output.shape
 
-        if not isinstance(gram_target, (tf.Tensor, tf.Variable)) \
-                or len(gram_target.shape) != 3 \
-                or gram_target.shape != (1, c, c):
+        if not isinstance(gram_target, (tf.Tensor, tf.Variable)) or \
+           len(gram_target.shape) != 3 or \
+           gram_target.shape != (1, c, c):
             raise TypeError(
                 "gram_target must be a tensor of shape [1, {}, {}]".format(
                     c, c
@@ -209,12 +282,20 @@ class NST:
         return diff
 
     def style_cost(self, style_outputs):
-        """Calculate the style cost for a generated image."""
+        """
+        Calculates the style cost for generated image.
 
+        parameters:
+            style_outputs: a list of tf.Tensor style outputs for
+                the generated image
+
+        Returns:
+            the style cost
+        """
         length = len(self.style_layers)
 
-        if not isinstance(style_outputs, list) \
-                or len(style_outputs) != length:
+        if not isinstance(style_outputs, list) or \
+           len(style_outputs) != length:
             raise TypeError(
                 "style_outputs must be a list with a length of {}".format(
                     length
