@@ -16,4 +16,3 @@ def bag_of_words(sentences, vocab=None):
     embeddings = X_train_counts.toarray()
     features = vectorizer.get_feature_names()
     return embeddings, features
-
