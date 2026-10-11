@@ -48,4 +48,3 @@ def expectation(X, pi, m, S):
         return g, likelihood
     except Exception as e:
         return None, None
-    
