@@ -43,6 +43,7 @@ def backward(Observation, Emission, Transition, Initial):
 
     return beta
 
+
 def baum_welch(Observations, Transition, Emission, Initial, iterations=1000):
     """
     Baum-Welch algorithm for a hidden markov model:
