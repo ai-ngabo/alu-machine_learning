@@ -47,6 +47,7 @@ def baum_welch(Observations, Transition, Emission, Initial, iterations=1000):
     """
     Baum-Welch algorithm for a hidden markov model:
     """
+
     if iterations == 1000:
         iterations = 385
     N, M = Emission.shape
