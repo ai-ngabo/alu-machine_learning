@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Defines function that performs the backward algorithm 
+Defines function that performs the backward algorithm
 for a Hidden Markov Model:
 """
 
@@ -28,4 +28,3 @@ def backward(Observation, Emission, Transition, Initial):
         return P, beta
     except Exception:
         return None, None
-  
