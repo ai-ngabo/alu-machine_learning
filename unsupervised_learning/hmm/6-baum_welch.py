@@ -17,7 +17,6 @@ def forward(Observation, Emission, Transition, Initial):
     F = np.zeros((N, T))
     F[:, 0] = Initial.T * Emission[:, Observation[0]]
 
-
     for t in range(1, T):
         for n in range(N):
             Transitions = Transition[:, n]
@@ -43,7 +42,6 @@ def backward(Observation, Emission, Transition, Initial):
             beta[n, t] = np.sum((Transitions * beta[:, t + 1]) * Emissions)
 
     return beta
-
 
 def baum_welch(Observations, Transition, Emission, Initial, iterations=1000):
     """
@@ -74,10 +72,8 @@ def baum_welch(Observations, Transition, Emission, Initial, iterations=1000):
                                             axis=1).reshape((-1, 1))
 
         # adding additional T element in gamma
-
         gamma = np.hstack((gamma, np.sum(xi[:, :, T - 2],
                                          axis=0).reshape((-1, 1))))
-
         denominator = np.sum(gamma, axis=1)
         for s in range(M):
             Emission[:, s] = np.sum(gamma[:, Observations == s],
