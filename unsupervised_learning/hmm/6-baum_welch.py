@@ -4,81 +4,97 @@
 import numpy as np
 
 
-def forward(Observation, Emission, Transition, Initial):
-    """ forward function based on task3: """
-    # Hidden States
-    N = Transition.shape[0]
+def baum_welch(Observations, Transition, Emission, Initial,
+               iterations=1000):
+    """Performs the Baum-Welch algorithm for a hidden Markov model."""
+    if (not isinstance(Observations, np.ndarray) or
+            not isinstance(Transition, np.ndarray) or
+            not isinstance(Emission, np.ndarray) or
+            not isinstance(Initial, np.ndarray)):
+        return None, None
 
-    # Observations
-    T = Observation.shape[0]
+    if (Observations.ndim != 1 or Transition.ndim != 2 or
+            Emission.ndim != 2 or Initial.ndim not in (1, 2)):
+        return None, None
 
-    # F == alpha
-    # initialization α1(j) = πjbj(o1) 1 ≤ j ≤ N
-    F = np.zeros((N, T))
-    F[:, 0] = Initial.T * Emission[:, Observation[0]]
+    M = Transition.shape[0]
+    if (Transition.shape != (M, M) or
+            Emission.shape[0] != M or
+            Initial.size != M or Observations.size == 0):
+        return None, None
 
-    for t in range(1, T):
-        for n in range(N):
-            Transitions = Transition[:, n]
-            Emissions = Emission[n, Observation[t]]
-            F[n, t] = np.sum(Transitions * F[:, t - 1]
-                             * Emissions)
+    if (not np.issubdtype(Observations.dtype, np.integer) or
+            np.any(Observations < 0) or
+            np.any(Observations >= Emission.shape[1])):
+        return None, None
 
-    return F
+    if (not np.all(np.isfinite(Transition)) or
+            not np.all(np.isfinite(Emission)) or
+            not np.all(np.isfinite(Initial)) or
+            np.any(Transition < 0) or np.any(Emission < 0) or
+            np.any(Initial < 0)):
+        return None, None
 
-
-def backward(Observation, Emission, Transition, Initial):
-    """ backward function based on task5: """
-
-    T = Observation.shape[0]
-    N, M = Emission.shape
-    beta = np.zeros((N, T))
-    beta[:, T - 1] = np.ones(N)
-
-    for t in range(T - 2, -1, -1):
-        for n in range(N):
-            Transitions = Transition[n, :]
-            Emissions = Emission[:, Observation[t + 1]]
-            beta[n, t] = np.sum((Transitions * beta[:, t + 1]) * Emissions)
-
-    return beta
-
-
-def baum_welch(Observations, Transition, Emission, Initial, iterations=1000):
-    """
-    Baum-Welch algorithm for a hidden markov model:
-    """
-
-    if iterations == 1000:
-        iterations = 385
-    N, M = Emission.shape
     T = Observations.shape[0]
+    N = Emission.shape[1]
+    Initial = Initial.reshape(M)
 
-    for n in range(iterations):
-        alpha = forward(Observations, Emission, Transition, Initial)
-        beta = backward(Observations, Emission, Transition, Initial)
+    for _ in range(iterations):
+        alpha = np.zeros((T, M))
+        beta = np.zeros((T, M))
 
-        xi = np.zeros((N, N, T - 1))
+        alpha[0] = Initial * Emission[:, Observations[0]]
+        scale = np.sum(alpha[0])
+        if scale == 0:
+            return None, None
+        alpha[0] /= scale
+
+        for t in range(1, T):
+            alpha[t] = (
+                alpha[t - 1] @ Transition
+            ) * Emission[:, Observations[t]]
+            scale = np.sum(alpha[t])
+            if scale == 0:
+                return None, None
+            alpha[t] /= scale
+
+        beta[T - 1] = 1
+
+        for t in range(T - 2, -1, -1):
+            beta[t] = Transition @ (
+                Emission[:, Observations[t + 1]] * beta[t + 1]
+            )
+            scale = np.sum(beta[t])
+            if scale != 0:
+                beta[t] /= scale
+
+        gamma = alpha * beta
+        gamma_sum = np.sum(gamma, axis=1, keepdims=True)
+        gamma_sum[gamma_sum == 0] = 1
+        gamma /= gamma_sum
+
+        xi_sum = np.zeros((M, M))
+        gamma_den = np.sum(gamma[:-1], axis=0)
+
         for t in range(T - 1):
-            denominator = np.dot(np.dot(alpha[:, t].T, Transition) *
-                                 Emission[:, Observations[t + 1]].T,
-                                 beta[:, t + 1])
-            for i in range(N):
-                numerator = alpha[i, t] * Transition[i] * \
-                            Emission[:, Observations[t + 1]].T * \
-                            beta[:, t + 1].T
-                xi[i, :, t] = numerator / denominator
+            xi = (
+                alpha[t, :, None] * Transition *
+                (Emission[:, Observations[t + 1]] * beta[t + 1])[None, :]
+            )
+            total = np.sum(xi)
+            if total != 0:
+                xi_sum += xi / total
 
-        gamma = np.sum(xi, axis=1)
-        Transition = np.sum(xi, 2) / np.sum(gamma,
-                                            axis=1).reshape((-1, 1))
+        for i in range(M):
+            if gamma_den[i] != 0:
+                Transition[i] = xi_sum[i] / gamma_den[i]
 
-        # adding additional T element in gamma
-        gamma = np.hstack((gamma, np.sum(xi[:, :, T - 2],
-                                         axis=0).reshape((-1, 1))))
-        denominator = np.sum(gamma, axis=1)
-        for s in range(M):
-            Emission[:, s] = np.sum(gamma[:, Observations == s],
-                                    axis=1)
-        Emission = np.divide(Emission, denominator.reshape((-1, 1)))
+        for i in range(M):
+            denominator = np.sum(gamma[:, i])
+            if denominator != 0:
+                for j in range(N):
+                    Emission[i, j] = np.sum(
+                        gamma[Observations == j, i]
+                    ) / denominator
+
     return Transition, Emission
